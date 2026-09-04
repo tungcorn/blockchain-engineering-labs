@@ -1,0 +1,321 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 560" width="100%" height="100%">
+  <defs>
+    <!-- Dark Cyberpunk Radial Gradients -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06080c" />
+      <stop offset="50%" stop-color="#080e18" />
+      <stop offset="100%" stop-color="#05070a" />
+    </linearGradient>
+
+    <linearGradient id="panelGradCyan" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0a1524" />
+      <stop offset="100%" stop-color="#050a12" />
+    </linearGradient>
+
+    <linearGradient id="panelGradAmber" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#191106" />
+      <stop offset="100%" stop-color="#0c0803" />
+    </linearGradient>
+
+    <linearGradient id="headerLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="transparent" />
+      <stop offset="30%" stop-color="#00f0ff" />
+      <stop offset="70%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="transparent" />
+    </linearGradient>
+
+    <!-- Glow Filters -->
+    <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <filter id="glowAmber" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <style>
+    .font-mono { font-family: 'JetBrains Mono', 'SF Mono', Consolas, Menlo, monospace; }
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+
+    @keyframes liveDot {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+    .live-dot-anim { animation: liveDot 2s infinite ease-in-out; }
+  </style>
+
+  <!-- ====================================================================
+       1. MAIN CONTAINER BACKGROUND
+       ==================================================================== -->
+  <rect x="0" y="0" width="1000" height="560" rx="16" fill="url(#bgGrad)" stroke="#152032" stroke-width="1.5" />
+
+  <!-- Background Decorative Grid -->
+  <g stroke="#111a28" stroke-width="0.8" opacity="0.4">
+    <line x1="40" y1="0" x2="40" y2="560" />
+    <line x1="250" y1="0" x2="250" y2="560" />
+    <line x1="500" y1="0" x2="500" y2="560" stroke="#182538" stroke-width="1.5" stroke-dasharray="4,4" />
+    <line x1="750" y1="0" x2="750" y2="560" />
+    <line x1="960" y1="0" x2="960" y2="560" />
+    <line x1="0" y1="80" x2="1000" y2="80" stroke="#182538" stroke-width="1.5" />
+    <line x1="0" y1="480" x2="1000" y2="480" stroke="#182538" stroke-width="1.5" />
+  </g>
+
+  <!-- ====================================================================
+       2. HEADER BAR
+       ==================================================================== -->
+  <rect x="36" y="16" width="160" height="22" rx="4" fill="#091320" stroke="#162940" stroke-width="1" />
+  <circle cx="48" cy="27" r="3.5" fill="#00f0ff" class="live-dot-anim" filter="url(#glowCyan)" />
+  <text x="58" y="31" fill="#38bdf8" class="font-mono" font-size="9" font-weight="700" letter-spacing="1">LIVE RUNTIME BENCHMARK</text>
+
+  <text x="500" y="38" fill="#ffffff" class="font-sans" font-size="20" font-weight="800" text-anchor="middle" letter-spacing="-0.5">
+    Neither one forgets a transaction
+  </text>
+  <text x="500" y="58" fill="#94a3b8" class="font-mono" font-size="10.5" font-weight="600" text-anchor="middle" letter-spacing="1.5">
+    SQL CLIENT-SERVER <tspan fill="#f59e0b">•</tspan> BLOCKCHAIN P2P GOSSIP
+  </text>
+  <line x1="380" y1="68" x2="620" y2="68" stroke="url(#headerLineGrad)" stroke-width="2" />
+
+  <rect x="830" y="16" width="134" height="22" rx="4" fill="#091320" stroke="#162940" stroke-width="1" />
+  <text x="897" y="31" fill="#94a3b8" class="font-mono" font-size="9" font-weight="600" text-anchor="middle">
+    DUAL ARCHITECTURE
+  </text>
+
+  <!-- ====================================================================
+       3. LEFT PANEL: SQL CLIENT-SERVER (CYAN ACCENT)
+       ==================================================================== -->
+  <g transform="translate(30, 95)">
+    <rect x="0" y="0" width="455" height="370" rx="10" fill="url(#panelGradCyan)" stroke="#112236" stroke-width="1.5" />
+    <path d="M0,0 L455,0" stroke="#00f0ff" stroke-width="2.5" />
+
+    <rect x="14" y="14" width="46" height="20" rx="4" fill="#00f0ff" />
+    <text x="37" y="28" fill="#030a14" class="font-mono" font-size="11" font-weight="800" text-anchor="middle">SQL</text>
+
+    <rect x="330" y="14" width="110" height="20" rx="4" fill="#061828" stroke="#0e3654" stroke-width="1" />
+    <circle cx="342" cy="24" r="3" fill="#38bdf8" />
+    <text x="352" y="28" fill="#38bdf8" class="font-mono" font-size="9" font-weight="700">COMMITTED</text>
+    <text x="415" y="28" fill="#ffffff" class="font-mono" font-size="9" font-weight="700">0.82 ms</text>
+
+    <rect x="14" y="44" width="427" height="275" rx="6" fill="#040810" stroke="#0c1a2d" stroke-width="1" />
+
+    <!-- Star Cables -->
+    <g stroke="#0f263e" stroke-width="1.5">
+      <line x1="213" y1="75" x2="213" y2="175" />
+      <line x1="213" y1="175" x2="213" y2="280" />
+      <line x1="75" y1="120" x2="213" y2="175" stroke-dasharray="3,3" />
+      <line x1="350" y1="120" x2="213" y2="175" stroke-dasharray="3,3" />
+      <line x1="75" y1="230" x2="213" y2="175" stroke-dasharray="3,3" />
+      <line x1="350" y1="230" x2="213" y2="175" stroke-dasharray="3,3" />
+      <line x1="340" y1="75" x2="213" y2="175" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4,4" opacity="0.3" />
+    </g>
+
+    <!-- Client Nodes -->
+    <circle cx="75" cy="120" r="10" fill="#071829" stroke="#0284c7" stroke-width="1" />
+    <text x="75" y="138" fill="#64748b" class="font-mono" font-size="7" text-anchor="middle">API Gateway</text>
+
+    <circle cx="350" cy="120" r="10" fill="#071829" stroke="#0284c7" stroke-width="1" />
+    <text x="350" y="138" fill="#64748b" class="font-mono" font-size="7" text-anchor="middle">Mobile App</text>
+
+    <circle cx="75" cy="230" r="10" fill="#071829" stroke="#0284c7" stroke-width="1" />
+    <text x="75" y="248" fill="#64748b" class="font-mono" font-size="7" text-anchor="middle">Worker</text>
+
+    <circle cx="350" cy="230" r="10" fill="#071829" stroke="#0284c7" stroke-width="1" />
+    <text x="350" y="248" fill="#64748b" class="font-mono" font-size="7" text-anchor="middle">Analytics DB</text>
+
+    <circle cx="340" cy="75" r="11" fill="#1c1103" stroke="#f59e0b" stroke-width="1.2" />
+    <text x="340" y="79" fill="#f59e0b" class="font-mono" font-size="8" font-weight="700" text-anchor="middle">DBA</text>
+    <text x="340" y="96" fill="#b45309" class="font-mono" font-size="7" text-anchor="middle">Root Terminal</text>
+
+    <!-- CENTRAL DB SERVER -->
+    <g transform="translate(153, 145)">
+      <rect x="0" y="0" width="120" height="60" rx="6" fill="#061726" stroke="#00f0ff" stroke-width="1.8" filter="url(#glowCyan)">
+        <animate attributeName="stroke" values="#00f0ff;#ffffff;#00f0ff;#00f0ff" dur="4.5s" keyTimes="0;0.12;0.25;1" repeatCount="indefinite" />
+      </rect>
+      <rect x="8" y="7" width="104" height="12" rx="2" fill="#092138" stroke="#133d63" stroke-width="0.8" />
+      <circle cx="16" cy="13" r="1.5" fill="#38bdf8" />
+      <text x="24" y="16" fill="#7dd3fc" class="font-mono" font-size="6.5">BAY 01: RAM CACHE</text>
+
+      <rect x="8" y="23" width="104" height="12" rx="2" fill="#092138" stroke="#133d63" stroke-width="0.8" />
+      <circle cx="16" cy="29" r="1.5" fill="#38bdf8" />
+      <text x="24" y="32" fill="#7dd3fc" class="font-mono" font-size="6.5">BAY 02: NVMe SSD</text>
+
+      <rect x="8" y="39" width="104" height="12" rx="2" fill="#092138" stroke="#133d63" stroke-width="0.8" />
+      <circle cx="16" cy="45" r="1.5" fill="#38bdf8" />
+      <text x="24" y="48" fill="#7dd3fc" class="font-mono" font-size="6.5">POSTGRESQL 5432</text>
+    </g>
+    <text x="213" y="218" fill="#38bdf8" class="font-mono" font-size="7.5" font-weight="700" text-anchor="middle">CENTRAL DB: 192.168.1.10</text>
+
+    <!-- Client Alice -->
+    <circle cx="213" cy="75" r="14" fill="#0c2338" stroke="#00f0ff" stroke-width="2" filter="url(#glowCyan)" />
+    <text x="213" y="79" fill="#00f0ff" class="font-mono" font-size="10" font-weight="800" text-anchor="middle">A</text>
+    <text x="213" y="56" fill="#e0f2fe" class="font-sans" font-size="9" font-weight="700" text-anchor="middle">Client Alice • 192.168.1.15</text>
+
+    <!-- Client Bob -->
+    <circle cx="213" cy="280" r="14" fill="#0c2338" stroke="#00f0ff" stroke-width="2" filter="url(#glowCyan)" />
+    <text x="213" y="284" fill="#00f0ff" class="font-mono" font-size="10" font-weight="800" text-anchor="middle">B</text>
+    <text x="213" y="306" fill="#e0f2fe" class="font-sans" font-size="9" font-weight="700" text-anchor="middle">Client Bob • 192.168.1.20</text>
+
+    <!-- ANIMATED SQL TCP PACKETS -->
+    <circle cx="213" cy="75" r="4.5" fill="#ffffff" filter="url(#glowCyan)">
+      <animate attributeName="cy" values="75;175;175;175" keyTimes="0;0.12;0.13;1" dur="4.5s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.12;0.13;1" dur="4.5s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="213" cy="175" r="4.5" fill="#00f0ff" filter="url(#glowCyan)">
+      <animate attributeName="cy" values="175;175;280;280" keyTimes="0;0.14;0.26;1" dur="4.5s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.13;0.26;0.28" dur="4.5s" repeatCount="indefinite" />
+    </circle>
+
+    <text x="213" y="316" fill="#475569" class="font-sans" font-size="9" text-anchor="middle" font-style="italic">commits directly to 1 central database</text>
+
+    <!-- Terminal HUD -->
+    <rect x="14" y="326" width="427" height="32" rx="4" fill="#03060a" stroke="#0d1b2a" stroke-width="1" />
+    <text x="26" y="346" fill="#00f0ff" class="font-mono" font-size="8.5">&gt;</text>
+    <text x="38" y="346" fill="#67e8f9" class="font-mono" font-size="8">[TCP Socket 5432] Direct memory commit in 0.82ms (In-place Overwrite)</text>
+  </g>
+
+  <!-- ====================================================================
+       4. RIGHT PANEL: SOLIDITY BLOCKCHAIN (AMBER ACCENT)
+       ==================================================================== -->
+  <g transform="translate(515, 95)">
+    <rect x="0" y="0" width="455" height="370" rx="10" fill="url(#panelGradAmber)" stroke="#2b1a06" stroke-width="1.5" />
+    <path d="M0,0 L455,0" stroke="#f59e0b" stroke-width="2.5" />
+
+    <rect x="14" y="14" width="76" height="20" rx="4" fill="#f59e0b" />
+    <text x="52" y="28" fill="#150a01" class="font-mono" font-size="11" font-weight="800" text-anchor="middle">SOLIDITY</text>
+
+    <rect x="315" y="14" width="125" height="20" rx="4" fill="#241402" stroke="#522f05" stroke-width="1" />
+    <circle cx="327" cy="24" r="3" fill="#fbbf24" />
+    <text x="337" y="28" fill="#fbbf24" class="font-mono" font-size="9" font-weight="700">MINED</text>
+    <text x="390" y="28" fill="#ffffff" class="font-mono" font-size="9" font-weight="700">1,420 ms</text>
+
+    <rect x="14" y="44" width="427" height="275" rx="6" fill="#090602" stroke="#211504" stroke-width="1" />
+
+    <!-- P2P Mesh Links -->
+    <g stroke="#3d2607" stroke-width="1.2">
+      <line x1="213" y1="75" x2="110" y2="105" />
+      <line x1="213" y1="75" x2="316" y2="105" />
+      <line x1="110" y1="105" x2="65" y2="160" />
+      <line x1="316" y1="105" x2="365" y2="160" />
+      <line x1="65" y1="160" x2="80" y2="220" />
+      <line x1="365" y1="160" x2="350" y2="220" />
+      <line x1="80" y1="220" x2="130" y2="265" />
+      <line x1="350" y1="220" x2="300" y2="265" />
+      <line x1="130" y1="265" x2="213" y2="280" />
+      <line x1="300" y1="265" x2="213" y2="280" />
+
+      <line x1="180" y1="175" x2="213" y2="155" stroke="#f59e0b" stroke-width="1.2" opacity="0.6" />
+      <line x1="213" y1="155" x2="246" y2="175" stroke="#f59e0b" stroke-width="1.2" opacity="0.6" />
+      <line x1="246" y1="175" x2="180" y2="175" stroke="#f59e0b" stroke-width="1.2" opacity="0.6" />
+
+      <line x1="213" y1="75" x2="150" y2="135" />
+      <line x1="213" y1="75" x2="276" y2="135" />
+      <line x1="150" y1="135" x2="213" y2="155" />
+      <line x1="276" y1="135" x2="213" y2="155" />
+      <line x1="180" y1="175" x2="150" y2="225" />
+      <line x1="246" y1="175" x2="276" y2="225" />
+      <line x1="150" y1="225" x2="213" y2="280" />
+      <line x1="276" y1="225" x2="213" y2="280" />
+    </g>
+
+    <!-- Canonical Path -->
+    <g stroke="#fbbf24" stroke-width="2.5" opacity="0.8" filter="url(#glowAmber)">
+      <line x1="213" y1="75" x2="150" y2="135">
+        <animate attributeName="opacity" values="0.1;0.2;1;0.2" keyTimes="0;0.35;0.7;1" dur="4.5s" repeatCount="indefinite" />
+      </line>
+      <line x1="150" y1="135" x2="213" y2="155">
+        <animate attributeName="opacity" values="0.1;0.3;1;0.2" keyTimes="0;0.45;0.75;1" dur="4.5s" repeatCount="indefinite" />
+      </line>
+      <line x1="213" y1="155" x2="276" y2="225">
+        <animate attributeName="opacity" values="0.1;0.4;1;0.2" keyTimes="0;0.55;0.8;1" dur="4.5s" repeatCount="indefinite" />
+      </line>
+      <line x1="276" y1="225" x2="213" y2="280">
+        <animate attributeName="opacity" values="0.1;0.5;1;0.2" keyTimes="0;0.65;0.85;1" dur="4.5s" repeatCount="indefinite" />
+      </line>
+    </g>
+
+    <!-- CONCENTRIC GOSSIP RIPPLE RINGS -->
+    <circle cx="213" cy="75" r="0" fill="none" stroke="#f59e0b" stroke-width="2.5" opacity="0">
+      <animate attributeName="r" values="0;230" keyTimes="0;1" dur="4.5s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.8;0" keyTimes="0;1" dur="4.5s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="213" cy="75" r="0" fill="none" stroke="#fbbf24" stroke-width="2" opacity="0">
+      <animate attributeName="r" values="0;230" keyTimes="0;1" dur="4.5s" begin="0.6s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.7;0" keyTimes="0;1" dur="4.5s" begin="0.6s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="213" cy="75" r="0" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0">
+      <animate attributeName="r" values="0;230" keyTimes="0;1" dur="4.5s" begin="1.2s" repeatCount="indefinite" />
+      <animate attributeName="opacity" values="0.6;0" keyTimes="0;1" dur="4.5s" begin="1.2s" repeatCount="indefinite" />
+    </circle>
+
+    <!-- Validator Cluster -->
+    <polygon points="180,175 213,155 246,175" fill="rgba(245, 158, 11, 0.08)" stroke="#f59e0b" stroke-width="1" />
+    <circle cx="180" cy="175" r="7" fill="#2d1702" stroke="#f59e0b" stroke-width="1.5" />
+    <circle cx="213" cy="155" r="7" fill="#2d1702" stroke="#f59e0b" stroke-width="1.5" />
+    <circle cx="246" cy="175" r="7" fill="#2d1702" stroke="#f59e0b" stroke-width="1.5" />
+    <text x="213" y="193" fill="#fcd34d" class="font-mono" font-size="7.5" font-weight="700" text-anchor="middle">BFT QUORUM (2/3+ VOTE)</text>
+
+    <!-- Intermediate Nodes -->
+    <circle cx="110" cy="105" r="6" fill="#1c0f02" stroke="#d97706" stroke-width="1" />
+    <circle cx="316" cy="105" r="6" fill="#1c0f02" stroke="#d97706" stroke-width="1" />
+    <circle cx="65" cy="160" r="6" fill="#1c0f02" stroke="#d97706" stroke-width="1" />
+    <circle cx="365" cy="160" r="6" fill="#1c0f02" stroke="#d97706" stroke-width="1" />
+    <circle cx="80" cy="220" r="6" fill="#1c0f02" stroke="#d97706" stroke-width="1" />
+    <circle cx="350" cy="220" r="6" fill="#1c0f02" stroke="#d97706" stroke-width="1" />
+    <circle cx="130" cy="265" r="6" fill="#1c0f02" stroke="#d97706" stroke-width="1" />
+    <circle cx="300" cy="265" r="6" fill="#1c0f02" stroke="#d97706" stroke-width="1" />
+    <circle cx="150" cy="135" r="6" fill="#1c0f02" stroke="#d97706" stroke-width="1" />
+    <circle cx="276" cy="135" r="6" fill="#1c0f02" stroke="#d97706" stroke-width="1" />
+    <circle cx="150" cy="225" r="6" fill="#1c0f02" stroke="#d97706" stroke-width="1" />
+    <circle cx="276" cy="225" r="6" fill="#1c0f02" stroke="#d97706" stroke-width="1" />
+
+    <!-- Node Alice -->
+    <circle cx="213" cy="75" r="14" fill="#291603" stroke="#f59e0b" stroke-width="2" filter="url(#glowAmber)" />
+    <text x="213" y="79" fill="#f59e0b" class="font-mono" font-size="10" font-weight="800" text-anchor="middle">A</text>
+    <text x="213" y="56" fill="#fef3c7" class="font-sans" font-size="9" font-weight="700" text-anchor="middle">Node Alice • Peer 0x71c</text>
+
+    <!-- Node Bob -->
+    <circle cx="213" cy="280" r="14" fill="#291603" stroke="#f59e0b" stroke-width="2" filter="url(#glowAmber)" />
+    <text x="213" y="284" fill="#f59e0b" class="font-mono" font-size="10" font-weight="800" text-anchor="middle">B</text>
+    <text x="213" y="306" fill="#fef3c7" class="font-sans" font-size="9" font-weight="700" text-anchor="middle">Node Bob • Peer 0x94f</text>
+
+    <text x="213" y="316" fill="#78350f" class="font-sans" font-size="9" text-anchor="middle" font-style="italic">spreads in concentric gossip rings</text>
+
+    <!-- Terminal HUD -->
+    <rect x="14" y="326" width="427" height="32" rx="4" fill="#080501" stroke="#261403" stroke-width="1" />
+    <text x="26" y="346" fill="#f59e0b" class="font-mono" font-size="8.5">&gt;</text>
+    <text x="38" y="346" fill="#fde68a" class="font-mono" font-size="8">[DevP2P Mesh] Quorum reached (14,574 Nodes) • Block #3 Mined (SHA-256)</text>
+  </g>
+
+  <!-- ====================================================================
+       5. BOTTOM MATRIX / COMPARISON SUMMARY
+       ==================================================================== -->
+  <g transform="translate(30, 480)">
+    <rect x="0" y="0" width="940" height="64" rx="8" fill="#080c14" stroke="#152030" stroke-width="1" />
+
+    <rect x="16" y="14" width="70" height="18" rx="3" fill="#261603" stroke="#f59e0b" stroke-width="0.8" />
+    <text x="51" y="26" fill="#f59e0b" class="font-mono" font-size="9" font-weight="700" text-anchor="middle">SOLIDITY</text>
+    <text x="100" y="26" fill="#ffffff" class="font-mono" font-size="10" font-weight="700">1,420 ms</text>
+    <text x="180" y="26" fill="#94a3b8" class="font-mono" font-size="9.5">14,574 Nodes</text>
+    <rect x="270" y="14" width="160" height="18" rx="3" fill="rgba(16, 185, 129, 0.12)" stroke="#10b981" stroke-width="0.8" />
+    <text x="350" y="26" fill="#34d399" class="font-mono" font-size="9" font-weight="700" text-anchor="middle">IMMUTABLE (SHA-256)</text>
+
+    <rect x="16" y="36" width="70" height="18" rx="3" fill="#081829" stroke="#00f0ff" stroke-width="0.8" />
+    <text x="51" y="48" fill="#00f0ff" class="font-mono" font-size="9" font-weight="700" text-anchor="middle">SQL DB</text>
+    <text x="100" y="48" fill="#ffffff" class="font-mono" font-size="10" font-weight="700">0.82 ms</text>
+    <text x="180" y="48" fill="#94a3b8" class="font-mono" font-size="9.5">1 Central Core</text>
+    <rect x="270" y="36" width="160" height="18" rx="3" fill="rgba(239, 68, 68, 0.12)" stroke="#ef4444" stroke-width="0.8" />
+    <text x="350" y="48" fill="#f87171" class="font-mono" font-size="9" font-weight="700" text-anchor="middle">MUTABLE (Admin Overwrite)</text>
+
+    <line x1="455" y1="10" x2="455" y2="54" stroke="#16253a" stroke-width="1" />
+
+    <text x="475" y="28" fill="#f8fafc" class="font-sans" font-size="11" font-weight="700">
+      <tspan fill="#00f0ff">SQL overwrites</tspan> the present state. <tspan fill="#f59e0b">Blockchain chains</tspan> every past transaction.
+    </text>
+    <text x="475" y="46" fill="#64748b" class="font-sans" font-size="9.5">
+      Single Point of Failure (SPOF) vs Byzantine Fault Tolerance (BFT) • In-place mutation vs append-only cryptographic ledger.
+    </text>
+  </g>
+
+</svg>

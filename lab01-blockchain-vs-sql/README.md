@@ -2,6 +2,22 @@
 
 An interactive visual comparison between **Centralized Client-Server Databases (SQL)** and **Decentralized Peer-to-Peer Blockchains (Solidity)**.
 
+<p align="center">
+  <img src="assets/architecture-simulation.svg" alt="Blockchain vs SQL Architecture Simulation" width="100%">
+</p>
+
+<p align="center">
+  <a href="demo/index.html">
+    <img src="https://img.shields.io/badge/LIVE_SIMULATOR-Open_Web_Visualizer-00f0ff?style=for-the-badge&logo=googlechrome&logoColor=black" alt="Open Web Visualizer">
+  </a>
+  <a href="contracts/SimpleBank.sol">
+    <img src="https://img.shields.io/badge/SOLIDITY-0.8.20-f59e0b?style=for-the-badge&logo=solidity&logoColor=black" alt="Solidity">
+  </a>
+  <a href="sql/schema.sql">
+    <img src="https://img.shields.io/badge/SQL-PostgreSQL%20%2F%20MySQL-38bdf8?style=for-the-badge&logo=postgresql&logoColor=black" alt="SQL">
+  </a>
+</p>
+
 ---
 
 ## ⚡ Quick Start
