@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blockchain vs SQL • Neither one forgets a transaction</title>
+  <title>Neither one forgets a transaction • Blockchain vs SQL</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,12 +11,15 @@
 <div class="container">
 
   <!-- ====================================================================
-       1. HEADER HERO (Mô phỏng chính xác phong cách trong ảnh)
+       1. HEADER HERO (CHÍNH XÁC THEO ẢNH GỐC)
        ==================================================================== -->
   <header class="header-hero">
     <div class="top-bar-controls">
       <button class="btn-icon" onclick="openPacketInspector()">
         📦 Wireshark Sniffer
+      </button>
+      <button class="btn-icon" onclick="openBlockInspector(1)">
+        🔍 SHA-256 Inspector
       </button>
       <button class="btn-icon" id="soundToggleBtn" onclick="toggleSound()">
         🔊 SFX: ON
@@ -25,227 +28,269 @@
 
     <h1>Neither one forgets a transaction</h1>
     <div class="header-meta">
-      <span>15,773 COMMITS</span>
+      <span id="headerCommitsCount">15,773 COMMITS</span>
       <span class="accent-dot">•</span>
-      <span>SAME SENDER, SAME GOAL</span>
+      <span id="heroStatusText">SAME SENDER, SAME GOAL</span>
     </div>
     <div class="header-divider"></div>
   </header>
 
   <!-- ====================================================================
-       RACE SIMULATION TOOLBAR (Chạy đua đồng thời để so sánh trực quan)
+       ACTION TOOLBAR (THANH ĐIỀU KHIỂN NỔI HIỆN ĐẠI)
        ==================================================================== -->
-  <section class="race-mode-bar">
-    <div class="race-info">
-      <span style="font-size: 1.4rem;">🏁</span>
-      <div>
-        <div class="race-title">SO SÁNH TỐC ĐỘ VÀ ĐỒNG THUẬN (RACE SIMULATION)</div>
-        <div class="race-desc">Chạy đồng thời một giao dịch Alice ➜ Bob (50 ETH) trên cả 2 nền tảng để đối chiếu độ trễ và cơ chế mạng.</div>
-      </div>
-    </div>
-    <button class="btn-race" onclick="startRaceSimulation()">
-      ⚡ Bắt Đầu Chạy Đua
+  <section class="action-toolbar">
+    <button class="btn-action primary" onclick="startRaceSimulation()">
+      ⚡ Bắt Đầu Chạy Đua (Race)
+    </button>
+    <button class="btn-action cyan" onclick="executeSqlQuery()">
+      ▶ SQL Direct Commit
+    </button>
+    <button class="btn-action amber" onclick="addBlockchainTransaction()">
+      ⚡ Phát Sóng P2P Gossip
+    </button>
+    <button class="btn-action danger" onclick="dbaTamperSql()">
+      ⚠️ DBA Sửa Trộm
+    </button>
+    <button class="btn-action danger" id="btnTamperBlockchain" onclick="toggleTamperBlockchain()">
+      💥 Tấn Công Sửa Khối
+    </button>
+    <button class="btn-action ghost" id="btnCrashSqlServer" onclick="toggleSqlServerCrash()">
+      🔌 Sập Server (SPOF)
+    </button>
+    <button class="btn-action ghost" id="btnPartitionP2P" onclick="toggleP2PPartition()">
+      📶 Tắt 30% Node (BFT)
     </button>
   </section>
 
-  <!-- Banner giải thích kết quả Race -->
-  <div class="race-insight-banner" id="raceInsightBanner">
-    <strong>💡 KẾT QUẢ ĐỐI CHIẾU:</strong> SQL hoàn tất sau <strong>0.8ms</strong> (do gửi thẳng tới 1 máy chủ DB trung tâm và ghi đè ô nhớ). Blockchain cần <strong>1,420ms</strong> để lan truyền Gossip qua 7 node, xác thực chữ ký số, tính hàm băm SHA-256 và đồng thuận gắn khối. 
-    <br><span style="color: #38bdf8;">👉 Đánh đổi: SQL nhanh hơn gấp 1,000 lần nhưng phụ thuộc hoàn toàn vào niềm tin nơi Admin. Blockchain chậm hơn nhưng tạo ra một sổ cái vĩnh viễn không thể giả mạo!</span>
-  </div>
-
   <!-- ====================================================================
-       2. COMPARISON GRID (Hai cột song song đối chiếu)
+       2. DENSE NETWORK VISUALIZERS (HAI CỘT TALL CANVAS GIỐNG ẢNH MẪU 100%)
        ==================================================================== -->
   <main class="comparison-grid">
 
-    <!-- CỘT BÊN TRÁI: SQL (CYAN ACCENT) -->
+    <!-- CỘT BÊN TRÁI: SQL (CYAN ACCENT - COMMITS TO ONE DIRECTION) -->
     <section class="card-panel cyan-theme">
       <div class="card-header">
-        <span class="badge-tag cyan">SQL (RDBMS)</span>
+        <span class="badge-tag cyan">SQL</span>
         <span class="metric-counter" id="sqlMetricCounter">
-          <span class="live-dot cyan"></span> 15,773 QUERIES
+          <span class="done-tag cyan">DONE</span> 0.82 ms
         </span>
       </div>
 
-      <!-- Canvas mạng Client-Server (Star Topology) -->
+      <!-- Tall Canvas Bản Đồ Mạng Đô Thị Phức Hợp -->
       <div class="canvas-wrapper">
-        <span class="canvas-overlay-tag">Star Topology • Central Server</span>
         <canvas id="sqlNetworkCanvas"></canvas>
-        <div class="canvas-pin-legend">
-          <span class="pin-item"><span class="pin-dot start"></span> Start: Alice (0x71c)</span>
-          <span class="pin-item"><span class="pin-dot goal"></span> Goal: Bob (0x94f)</span>
+        
+        <!-- Pin Điểm Xuất Phát: Times Square (Alice) -->
+        <div class="map-pin pin-start">
+          <span class="pin-badge">A</span>
+          <span class="pin-text">Times Square • Alice (0x71c)</span>
+        </div>
+
+        <!-- Pin Máy Chủ Trung Tâm DB -->
+        <div class="map-pin pin-server" id="sqlServerPin">
+          <span class="pin-badge server">DB</span>
+          <span class="pin-text">CENTRAL DB (Port 5432)</span>
+        </div>
+
+        <!-- Pin Điểm Đến: Coney Island (Bob) -->
+        <div class="map-pin pin-goal">
+          <span class="pin-ring"></span>
+          <span class="pin-text">Coney Island • Bob (0x94f)</span>
+        </div>
+
+        <!-- Dòng chú thích dưới đáy canvas như ảnh -->
+        <div class="canvas-footer-label">
+          commits to one direction
         </div>
       </div>
 
-      <!-- Network Packet Terminal HUD -->
+      <!-- Network Terminal HUD -->
       <div class="network-hud cyan" id="sqlHud">
-        <span class="hud-prompt">&gt;</span> <span class="hud-log">[TCP Port 5432] Socket connected to Central DB (Latency: 0.8ms)</span>
-      </div>
-
-      <!-- Bảng dữ liệu SQL Live -->
-      <div class="data-display-container">
-        <table class="db-table">
-          <thead>
-            <tr>
-              <th>Account</th>
-              <th>Balance</th>
-              <th>Updated At</th>
-            </tr>
-          </thead>
-          <tbody id="sqlTableBody">
-            <!-- Render động từ app.js -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Nút tương tác SQL -->
-      <div class="controls-row">
-        <button class="btn btn-cyan" onclick="executeSqlQuery()">
-          ▶ Thực Hiện UPDATE
-        </button>
-        <button class="btn btn-ghost-danger" onclick="dbaTamperSql()">
-          ⚠️ DBA Sửa Trộm
-        </button>
-        <button class="btn btn-ghost-danger" id="btnCrashSqlServer" onclick="toggleSqlServerCrash()">
-          🔌 Sập Server (SPOF)
-        </button>
-      </div>
-
-      <div class="panel-footer-note">
-        client-server commits directly to one central node
+        <span class="hud-prompt">&gt;</span> <span class="hud-log">[TCP Port 5432] Direct socket stream to Central DB server (0.82ms)</span>
       </div>
     </section>
 
-    <!-- CỘT BÊN PHẢI: SOLIDITY BLOCKCHAIN (AMBER ACCENT) -->
+    <!-- CỘT BÊN PHẢI: SOLIDITY BLOCKCHAIN (AMBER ACCENT - SPREADS IN RINGS) -->
     <section class="card-panel amber-theme">
       <div class="card-header">
-        <span class="badge-tag amber">SOLIDITY (P2P)</span>
+        <span class="badge-tag amber">SOLIDITY</span>
         <span class="metric-counter" id="solidityMetricCounter">
-          <span class="live-dot amber"></span> BLOCK #04
+          <span class="done-tag amber">MINED</span> 1,420 ms
         </span>
       </div>
 
-      <!-- Canvas mạng P2P Gossip Mesh -->
+      <!-- Tall Canvas Bản Đồ Sóng Gossip Lan Truyền -->
       <div class="canvas-wrapper">
-        <span class="canvas-overlay-tag">P2P Mesh • Gossip Protocol</span>
         <canvas id="p2pNetworkCanvas"></canvas>
-        <div class="canvas-pin-legend">
-          <span class="pin-item"><span class="pin-dot start"></span> Node A (Alice)</span>
-          <span class="pin-item"><span class="pin-dot goal"></span> Node B (Bob)</span>
+
+        <!-- Pin Điểm Xuất Phát: Times Square (Alice) -->
+        <div class="map-pin pin-start">
+          <span class="pin-badge">A</span>
+          <span class="pin-text">Times Square • Alice (0x71c)</span>
+        </div>
+
+        <!-- Pin Điểm Đến: Coney Island (Bob) -->
+        <div class="map-pin pin-goal">
+          <span class="pin-ring"></span>
+          <span class="pin-text">Coney Island • Bob (0x94f)</span>
+        </div>
+
+        <!-- Dòng chú thích dưới đáy canvas như ảnh -->
+        <div class="canvas-footer-label">
+          spreads in rings
         </div>
       </div>
 
-      <!-- Network Packet Terminal HUD -->
+      <!-- Network Terminal HUD -->
       <div class="network-hud amber" id="blockchainHud">
-        <span class="hud-prompt">&gt;</span> <span class="hud-log">[DevP2P Mesh] 7 Peers synchronized • Consensus: Proof-of-Stake</span>
-      </div>
-
-      <!-- Sổ cái khối Blockchain Live -->
-      <div class="data-display-container">
-        <div class="blockchain-blocks" id="blockchainBlocks">
-          <!-- Render động từ app.js -->
-        </div>
-      </div>
-
-      <!-- Nút tương tác Blockchain -->
-      <div class="controls-row">
-        <button class="btn btn-amber" onclick="addBlockchainTransaction()">
-          ⚡ Phát Sóng P2P
-        </button>
-        <button class="btn btn-ghost-danger" id="btnTamperBlockchain" onclick="toggleTamperBlockchain()">
-          💥 Tấn Công Sửa Khối
-        </button>
-        <button class="btn btn-ghost-cyan" id="btnPartitionP2P" onclick="toggleP2PPartition()">
-          📶 Tắt 2 Node (BFT)
-        </button>
-      </div>
-
-      <div class="panel-footer-note">
-        spreads in gossip rings, hashes bind forever · <span style="color: #f59e0b; cursor: pointer;">🔍 click block to inspect SHA-256</span>
+        <span class="hud-prompt">&gt;</span> <span class="hud-log">[DevP2P Mesh] Concentric Gossip wavefront propagating across peer network</span>
       </div>
     </section>
 
   </main>
 
   <!-- ====================================================================
-       3. "THE ONLY DIFFERENCE" CODE COMPARISON (Khung code như ảnh)
+       3. "WHAT EACH ONE RETURNED" BẢNG ĐỐI CHIẾU (CHÍNH XÁC THEO ẢNH)
        ==================================================================== -->
-  <section class="code-comparison-card">
-    <div class="code-header-tag">
-      <span>THE ONLY DIFFERENCE</span>
-      <span style="font-weight: 400; color: #64748b;">hover code to inspect architecture</span>
+  <section class="results-table-card">
+    <div class="results-table-header">
+      <span class="title">WHAT EACH ONE RETURNED</span>
+      <div class="results-col-labels">
+        <span>LATENCY</span>
+        <span>PEERS CONTACTED</span>
+        <span>DATA INTEGRITY</span>
+      </div>
     </div>
-    <div class="code-editor">
-      <div class="code-line hover-sql">
-        <span class="line-num">1</span>
-        <span class="line-content kw-comment">// SQL (Client-Server): Ghi đè trạng thái tại chỗ (Mutable in-place)</span>
+    <div class="results-table-rows">
+      <div class="result-row amber">
+        <div class="result-name"><span class="pill amber">SOLIDITY</span></div>
+        <div class="result-val metric" id="tableResLatencyChain">1,420 ms</div>
+        <div class="result-val" id="tableResNodesChain">14,574</div>
+        <div class="result-val status-badge green" id="tableResIntegrityChain">IMMUTABLE (SHA-256)</div>
       </div>
-      <div class="code-line hover-sql">
-        <span class="line-num">2</span>
-        <span class="line-content">
-          <span class="kw-cyan">UPDATE</span> accounts <span class="kw-cyan">SET</span> balance = balance - amount <span class="kw-cyan">WHERE</span> id = sender; 
-          <span class="highlight-badge cyan">SQL</span> · <span class="kw-comment">admin can silently alter</span>
-        </span>
-      </div>
-      <div class="code-line">
-        <span class="line-num">3</span>
-        <span class="line-content kw-comment">// Solidity (P2P Ledger): Cập nhật State + Tạo vết mật mã Bất biến (Immutable)</span>
-      </div>
-      <div class="code-line hover-blockchain">
-        <span class="line-num">4</span>
-        <span class="line-content">
-          <span class="kw-gold">require</span>(balances[msg.sender] &gt;= amount, <span class="kw-str">"Insufficient"</span>);
-        </span>
-      </div>
-      <div class="code-line hover-blockchain">
-        <span class="line-num">5</span>
-        <span class="line-content">
-          balances[msg.sender] -= amount; <span class="highlight-badge amber">drop in-place for block hash</span>
-        </span>
-      </div>
-      <div class="code-line hover-blockchain">
-        <span class="line-num">6</span>
-        <span class="line-content">
-          balances[to] += amount;
-        </span>
-      </div>
-      <div class="code-line hover-blockchain">
-        <span class="line-num">7</span>
-        <span class="line-content">
-          <span class="kw-purple">emit</span> <span class="kw-blue">Transfer</span>(msg.sender, to, amount, block.timestamp);
-        </span>
+      <div class="result-row cyan">
+        <div class="result-name"><span class="pill cyan">SQL</span></div>
+        <div class="result-val metric" id="tableResLatencySql">0.82 ms</div>
+        <div class="result-val" id="tableResNodesSql">1</div>
+        <div class="result-val status-badge red" id="tableResIntegritySql">MUTABLE (Admin Overwrite)</div>
       </div>
     </div>
   </section>
 
   <!-- ====================================================================
-       4. FOOTER PUNCHLINE BANNER (Thông điệp cốt lõi)
+       4. PUNCHLINE BANNER (HỘP VIỀN BO TRÒN GIỐNG ẢNH GỐC)
        ==================================================================== -->
-  <footer class="footer-punchline">
-    <p>
-      <span class="hl-cyan">SQL overwrites the present state.</span> 
-      <span class="hl-amber">Blockchain chains every past transaction.</span>
+  <section class="punchline-pill-box">
+    <p class="punchline-main-text">
+      <span class="hl-cyan">SQL overwrites</span> the present state. 
+      <span class="hl-amber">Blockchain chains</span> every past transaction.
     </p>
-  </footer>
+    <p class="punchline-sub-text">
+      Solidity EVM transaction signed with ECDSA secp256k1. Gossip protocol propagated across P2P mesh. SQL executed directly via TCP Port 5432.
+    </p>
+  </section>
 
   <!-- ====================================================================
-       5. PHẦN HỌC TẬP MÔN HỌC CHO SINH VIÊN NĂM 4 (Ôn thi & Báo cáo)
+       5. DRAWER TABS: DỮ LIỆU SỔ CÁI, MÃ NGUỒN & CẨM NANG ÔN THI
        ==================================================================== -->
-  <section class="study-guide-card">
-    <div class="study-guide-title" onclick="toggleStudyGuide()">
-      <span>📘 Tổng hợp kiến thức cốt lõi môn học: Chuỗi khối vs Mạng máy tính & SQL</span>
-      <div>
-        <span class="tag">Click để xem chi tiết</span>
-        <span id="guideToggleIcon" style="margin-left: 8px;">▼</span>
+  <section class="drawers-container">
+    
+    <!-- Tab Controls -->
+    <div class="drawer-tabs">
+      <button class="drawer-tab-btn active" onclick="switchTab('ledger')">
+        📋 Dữ Liệu Sổ Cái &amp; Khối Live
+      </button>
+      <button class="drawer-tab-btn" onclick="switchTab('code')">
+        💻 Đối Chiếu Code "THE ONLY DIFFERENCE"
+      </button>
+      <button class="drawer-tab-btn" onclick="switchTab('guide')">
+        📘 Cẩm Nang Môn Học (Ôn Thi 5 Tiêu Chí)
+      </button>
+    </div>
+
+    <!-- Tab 1: Ledger Data -->
+    <div class="drawer-content active" id="tab-ledger">
+      <div class="ledger-split-view">
+        <!-- SQL Live Table -->
+        <div class="ledger-box">
+          <div class="ledger-box-title cyan">
+            <span>BẢNG DỮ LIỆU SQL (MUTABLE IN-PLACE)</span>
+            <span id="sqlTableBadge" class="mini-tag cyan">3 BẢN GHI</span>
+          </div>
+          <table class="db-table">
+            <thead>
+              <tr>
+                <th>Account</th>
+                <th>Balance</th>
+                <th>Updated At</th>
+              </tr>
+            </thead>
+            <tbody id="sqlTableBody">
+              <!-- Render động -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Blockchain Block Cards -->
+        <div class="ledger-box">
+          <div class="ledger-box-title amber">
+            <span>SỔ CÁI KHỐI SOLIDITY (APPEND-ONLY IMMUTABLE)</span>
+            <span class="mini-tag amber">CLICK KHỐI ĐỂ SOI SHA-256</span>
+          </div>
+          <div class="blockchain-blocks" id="blockchainBlocks">
+            <!-- Render động -->
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="study-guide-content" id="studyGuideContent" style="display: none;">
-      <p>
-        Khi giảng viên yêu cầu đối chiếu <strong>Chuỗi khối (Blockchain)</strong> với <strong>Mạng máy tính</strong> và <strong>Cơ sở dữ liệu (SQL)</strong>, đây là bảng 5 tiêu chí quan trọng nhất giúp bạn trả lời trọn vẹn trong các buổi thuyết trình và bài thi:
-      </p>
+    <!-- Tab 2: Code Comparison -->
+    <div class="drawer-content" id="tab-code">
+      <div class="code-editor">
+        <div class="code-line hover-sql">
+          <span class="line-num">1</span>
+          <span class="line-content kw-comment">// SQL (Client-Server): Ghi đè trạng thái tại chỗ (Mutable in-place)</span>
+        </div>
+        <div class="code-line hover-sql">
+          <span class="line-num">2</span>
+          <span class="line-content">
+            <span class="kw-cyan">UPDATE</span> accounts <span class="kw-cyan">SET</span> balance = balance - amount <span class="kw-cyan">WHERE</span> id = sender; 
+            <span class="highlight-badge cyan">SQL</span> · <span class="kw-comment">admin can silently alter</span>
+          </span>
+        </div>
+        <div class="code-line">
+          <span class="line-num">3</span>
+          <span class="line-content kw-comment">// Solidity (P2P Ledger): Cập nhật State + Tạo vết mật mã Bất biến (Immutable)</span>
+        </div>
+        <div class="code-line hover-blockchain">
+          <span class="line-num">4</span>
+          <span class="line-content">
+            <span class="kw-gold">require</span>(balances[msg.sender] &gt;= amount, <span class="kw-str">"Insufficient"</span>);
+          </span>
+        </div>
+        <div class="code-line hover-blockchain">
+          <span class="line-num">5</span>
+          <span class="line-content">
+            balances[msg.sender] -= amount; <span class="highlight-badge amber">drop in-place for block hash</span>
+          </span>
+        </div>
+        <div class="code-line hover-blockchain">
+          <span class="line-num">6</span>
+          <span class="line-content">
+            balances[to] += amount;
+          </span>
+        </div>
+        <div class="code-line hover-blockchain">
+          <span class="line-num">7</span>
+          <span class="line-content">
+            <span class="kw-purple">emit</span> <span class="kw-blue">Transfer</span>(msg.sender, to, amount, block.timestamp);
+          </span>
+        </div>
+      </div>
+    </div>
 
+    <!-- Tab 3: Study Guide -->
+    <div class="drawer-content" id="tab-guide">
       <table class="exam-table">
         <thead>
           <tr>
@@ -256,33 +301,34 @@
         </thead>
         <tbody>
           <tr>
-            <td>Kiến trúc mạng (Networking)</td>
-            <td>Client-Server (Star Topology). Client gửi request TCP/HTTP trực tiếp tới 1 máy chủ DB.</td>
-            <td>Peer-to-Peer Mesh. Giao thức lan truyền tin đồn (Gossip Protocol) qua mạng ngang hàng.</td>
+            <td><strong>Kiến trúc mạng</strong></td>
+            <td>Client-Server (Star). Client gửi thẳng TCP tới 1 máy chủ DB.</td>
+            <td>Peer-to-Peer Mesh. Lan truyền tin đồn (Gossip Protocol) qua toàn mạng.</td>
           </tr>
           <tr>
-            <td>Điểm lỗi & Độ tin cậy (Fault Tolerance)</td>
-            <td>Single Point of Failure (SPOF). Nếu Server DB sập hoặc đứt cáp mạng, hệ thống dừng.</td>
-            <td>Chịu lỗi Byzantine (BFT). Có thể chịu được tới 33% hoặc 50% số node bị sập hoặc tấn công độc hại.</td>
+            <td><strong>Điểm lỗi hệ thống</strong></td>
+            <td>Single Point of Failure (SPOF). Server sập thì toàn bộ hệ thống ngừng hoạt động.</td>
+            <td>Chịu lỗi Byzantine (BFT). Hàng ngàn node sập, mạng vẫn đồng thuận bình thường.</td>
           </tr>
           <tr>
-            <td>Quyền hạn & Quản trị (Authority)</td>
-            <td>Tập trung (Centralized). DBA có toàn quyền chạy UPDATE, DROP, DELETE sửa đổi mọi lịch sử.</td>
-            <td>Phi tập trung (Decentralized/Trustless). Code is Law. Không ai có thể sửa đổi quá khứ đã đào vào block.</td>
+            <td><strong>Quyền lực quản trị</strong></td>
+            <td>Tập trung (Centralized). DBA có toàn quyền chạy UPDATE, DELETE sửa bất kỳ lịch sử nào.</td>
+            <td>Phi tập trung (Trustless). Code is Law. Không ai sửa được khối đã đào.</td>
           </tr>
           <tr>
-            <td>Mô hình lưu trữ (Storage Model)</td>
-            <td>CRUD (Create, Read, Update, Delete). Ghi đè trực tiếp ô nhớ của bản ghi.</td>
-            <td>Append-only (Chỉ thêm mới). Mọi chuyển giao là một Transaction được đóng gói vào Block liên kết bằng SHA-256.</td>
+            <td><strong>Mô hình lưu trữ</strong></td>
+            <td>CRUD (Ghi đè ô nhớ hiện tại).</td>
+            <td>Append-only (Chỉ thêm mới). Xâu chuỗi bằng hàm băm mật mã SHA-256.</td>
           </tr>
           <tr>
-            <td>Hiệu năng & Chi phí (Trade-offs)</td>
-            <td>Cực nhanh (10,000 - 100,000+ TPS), độ trễ micro-giây, chi phí duy trì rẻ.</td>
-            <td>Chậm hơn (15 - 3,000 TPS) do phải chờ đồng thuận P2P và đào block. Tốn phí Gas cho mỗi lệnh thực thi.</td>
+            <td><strong>Hiệu năng (Trade-off)</strong></td>
+            <td>Cực nhanh (10,000 - 100,000+ TPS), độ trễ 0.8ms.</td>
+            <td>Đánh đổi: Chậm hơn (15 - 3,000 TPS) để đổi lấy sổ cái vĩnh viễn không thể làm giả.</td>
           </tr>
         </tbody>
       </table>
     </div>
+
   </section>
 
 </div>
@@ -373,9 +419,9 @@ COMMIT;</code></pre>
           <div class="packet-analysis cyan">
             <strong>⚠️ ĐẶC ĐIỂM MẠNG:</strong>
             <ul>
-              <li>Client gửi văn bản thô (hoặc TLS nếu bật SSL) tới 1 IP duy nhất.</li>
-              <li>Máy chủ nhận được là thực thi ngay; không yêu cầu chữ ký toán học.</li>
-              <li>Nếu máy chủ trung tâm sập mạng ➜ Lỗi <code>ECONNREFUSED</code> lập tức!</li>
+              <li>Client gửi văn bản thô trực tiếp tới 1 máy chủ tập trung.</li>
+              <li>Máy chủ thực thi ngay mà không cần chữ ký mật mã học.</li>
+              <li>Nếu máy chủ trung tâm sập nguồn ➜ Lỗi <code>ECONNREFUSED</code> lập tức!</li>
             </ul>
           </div>
         </div>
@@ -407,9 +453,9 @@ COMMIT;</code></pre>
           <div class="packet-analysis amber">
             <strong>🛡️ ĐẶC ĐIỂM MẬT MÃ:</strong>
             <ul>
-              <li>Được ký bởi Khóa Riêng (Private Key) bằng thuật toán <strong>ECDSA (secp256k1)</strong>.</li>
+              <li>Được ký bởi Khóa Riêng (Private Key) qua thuật toán <strong>ECDSA (secp256k1)</strong>.</li>
               <li>Bất kỳ ai chặn gói tin trên đường truyền cũng không thể sửa <code>value</code> hay <code>to</code>.</li>
-              <li>Gói tin phát sóng đa hướng (Gossip) qua hàng ngàn node P2P. Tắt vài node không ảnh hưởng!</li>
+              <li>Gói tin lan truyền đa hướng (Gossip wave) qua toàn mạng mesh. Tắt vài node không ảnh hưởng!</li>
             </ul>
           </div>
         </div>
