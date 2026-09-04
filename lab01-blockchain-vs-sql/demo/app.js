@@ -227,6 +227,7 @@ let p2pWavefronts = [];
 
 // Network States
 let isSqlServerDown = false;
+let isSqlTampered = false;
 let isChainTampered = false;
 let isP2PPartitioned = false;
 
@@ -517,45 +518,77 @@ function startRaceSimulation() {
   addBlockchainTransaction();
 }
 
-function dbaTamperSql() {
-  if (isSqlServerDown) {
-    playSound('alarm');
-    showCyberToast({
-      title: 'CONNECTION REFUSED',
-      type: 'danger',
-      message: 'Central database server is offline. Even DBA root terminal cannot connect.',
-      duration: 4000
-    });
-    return;
-  }
-  playSound('alarm');
-  const dba = sqlClients.find(c => c.id === 'dba');
-  if (!dba) return;
-
-  // DBA sends covert raw memory overwrite via SSH port 22 directly into DB memory
-  sqlPackets.push({
-    fromX: dba.x, fromY: dba.y,
-    toX: sqlServer.x + 30, toY: sqlServer.y - sqlServer.h / 2,
-    progress: 0,
-    duration: 220,
-    startTime: performance.now(),
-    color: '#ef4444',
-    label: 'DBA ROOT OVERWRITE',
-    onComplete: () => {
-      sqlServer.pulseGlow = 1.5;
-      sqlServer.memoryActivity = 2; // Red glitch indicator
-      sqlAccounts.Alice = 999999;
-      renderSqlTable();
-      updateSqlHud(`[DBA TAMPER] UPDATE accounts SET balance = 999999 WHERE id = 'Alice' (ACCEPTED BY ROOT)`, true);
+function toggleDbaTamperSql() {
+  const btn = document.getElementById('btnDbaTamperSql');
+  if (!isSqlTampered) {
+    if (isSqlServerDown) {
+      playSound('alarm');
       showCyberToast({
-        title: 'SQL DBA TAMPER: SILENT OVERWRITE',
+        title: 'CONNECTION REFUSED',
         type: 'danger',
-        message: 'Database Administrator (192.168.1.99) executed raw memory overwrite:<br><code>UPDATE accounts SET balance = 999999;</code><br><br>➜ In-place memory silently modified with zero cryptographic verification or consensus!',
-        duration: 7000
+        message: 'Central database server is offline. Even DBA root terminal cannot connect.',
+        duration: 4000
       });
-      updateResultsTable('sql', '0.82 ms', '1 Central Core', 'TAMPERED (Silently Overwritten!)');
+      return;
     }
-  });
+    playSound('alarm');
+    const dba = sqlClients.find(c => c.id === 'dba');
+    if (!dba) return;
+
+    // DBA sends covert raw memory overwrite via SSH port 22 directly into DB memory
+    sqlPackets.push({
+      fromX: dba.x, fromY: dba.y,
+      toX: sqlServer.x + 30, toY: sqlServer.y - sqlServer.h / 2,
+      progress: 0,
+      duration: 220,
+      startTime: performance.now(),
+      color: '#ef4444',
+      label: 'DBA ROOT OVERWRITE',
+      onComplete: () => {
+        isSqlTampered = true;
+        sqlServer.pulseGlow = 1.8;
+        sqlServer.memoryActivity = 2; // Glitch indicator
+        sqlAccounts.Alice = 999999;
+        renderSqlTable();
+        updateSqlHud(`[DBA TAMPER] UPDATE accounts SET balance = 999999 WHERE id = 'Alice' (ACCEPTED BY ROOT WITH ZERO CONSENSUS)`, true);
+        if (btn) {
+          btn.innerHTML = "🔄 Revert SQL Data";
+          btn.className = "btn-action danger";
+        }
+        showCyberToast({
+          title: 'SQL: SILENT OVERWRITE COMMITTED',
+          type: 'danger',
+          message: 'Database Administrator (192.168.1.99) executed raw memory overwrite:<br><code>UPDATE accounts SET balance = 999999;</code><br><br>⚠️ <strong>SQL Server accepted it blindly in 0.82ms!</strong> No cryptographic validation, no peer signatures. Clients have ZERO proof this happened!',
+          duration: 7500
+        });
+        updateResultsTable('sql', '0.82 ms', '1 Central Core', 'TAMPERED (Silently Overwritten!)');
+      }
+    });
+  } else {
+    // Revert DBA Tamper to honest baseline
+    playSound('restore');
+    isSqlTampered = false;
+    sqlServer.memoryActivity = 0;
+    sqlAccounts.Alice = 500;
+    renderSqlTable();
+    updateSqlHud(`[SQL RESTORED] Table accounts reverted to valid baseline checkpoint (Alice: 500 ETH).`);
+    if (btn) {
+      btn.innerHTML = "⚠️ DBA Tamper (SQL)";
+      btn.className = "btn-action danger";
+    }
+    showCyberToast({
+      title: 'SQL STATE REVERTED',
+      type: 'success',
+      message: 'Database checkpoint reloaded. Alice account balance restored to legitimate 500 ETH baseline.',
+      duration: 3500
+    });
+    updateResultsTable('sql', '0.82 ms', '1 Central DB Core', 'MUTABLE (Admin Overwrite)');
+  }
+}
+
+// Alias for backwards compatibility
+function dbaTamperSql() {
+  toggleDbaTamperSql();
 }
 
 function toggleTamperBlockchain() {
@@ -568,15 +601,15 @@ function toggleTamperBlockchain() {
       blockchain[1].hash = "bad_c0de";
     }
     renderBlockCards();
-    updateBlockchainHud(`[BFT SECURITY ALERT] Block #1 Tampered! PrevHash mismatch at Block #2! Chain rejected!`, true);
+    updateBlockchainHud(`[BFT SECURITY ALERT] Block #1 Tampered! PrevHash mismatch at Block #2! 14,574 Nodes REJECT invalid chain!`, true);
     if (btn) {
       btn.innerHTML = "🛡️ Restore Consensus";
       btn.className = "btn-action danger";
     }
     showCyberToast({
-      title: 'SECURITY ALERT: BLOCK TAMPER DETECTED',
+      title: 'SECURITY ALERT: BLOCK TAMPER REJECTED',
       type: 'danger',
-      message: 'Malicious actor altered Block #1 payload to 9,999 ETH.<br><br>➜ Hash changed ➜ Mismatch with Block #2 PreviousHash!<br>➜ All 14,574 P2P nodes immediately <strong>REJECTED</strong> the invalid chain!',
+      message: 'Malicious actor altered Block #1 payload to 9,999 ETH.<br><br>➜ Hash changed to <code>bad_c0de</code> ➜ Mismatch with Block #2 <code>PreviousHash</code>!<br>➜ All 14,574 P2P nodes detected cryptographic break and immediately <strong>REJECTED</strong> the altered chain!',
       duration: 7500
     });
     updateResultsTable('chain', 'REJECTED', '14,574 Peers', 'INVALID CHAIN (Tamper Detected!)');
@@ -584,7 +617,21 @@ function toggleTamperBlockchain() {
     playSound('restore');
     isChainTampered = false;
     initBlockchainLedger();
-    updateBlockchainHud(`[CANONICAL RESTORED] Canonical chain synchronized across 14,574 peers.`);
+
+    // Trigger green consensus sync wave from PoS Validators cluster to Alice
+    const val2 = p2pNodes.find(n => n.id === 'val2');
+    const alice = p2pNodes.find(n => n.id === 'alice');
+    if (val2 && alice) {
+      p2pWavefronts.push({
+        x: val2.x, y: val2.y,
+        maxRadius: Math.hypot(alice.x - val2.x, alice.y - val2.y) * 1.35,
+        duration: 900,
+        startTime: performance.now(),
+        color: '#10b981'
+      });
+    }
+
+    updateBlockchainHud(`[CONSENSUS RESTORED] Canonical blockchain state re-synchronized across 14,574 peer nodes.`);
     if (btn) {
       btn.innerHTML = "💥 Tamper Block (Chain)";
       btn.className = "btn-action danger";
@@ -592,8 +639,8 @@ function toggleTamperBlockchain() {
     showCyberToast({
       title: 'CONSENSUS RESTORED',
       type: 'success',
-      message: 'Canonical blockchain successfully re-synchronized across all peer nodes in the mesh network.',
-      duration: 3500
+      message: 'Node Alice re-synchronized canonical blocks from the majority honest peer swarm. Cryptographic integrity 100% intact.',
+      duration: 4000
     });
     updateResultsTable('chain', '1,420 ms', '14,574 Peers', 'IMMUTABLE ✓ (SHA-256)');
   }
@@ -687,6 +734,7 @@ function toggleP2PPartition() {
 function resetDemo() {
   playSound('restore');
   isSqlServerDown = false;
+  isSqlTampered = false;
   isP2PPartitioned = false;
   isChainTampered = false;
 
@@ -696,6 +744,12 @@ function resetDemo() {
 
   p2pNodes.forEach(n => { n.isOffline = false; n.litGlow = 0; });
   p2pLinks.forEach(l => { l.isCanonical = false; l.activity = 0; });
+
+  const btnDba = document.getElementById('btnDbaTamperSql');
+  if (btnDba) {
+    btnDba.innerHTML = "⚠️ DBA Tamper (SQL)";
+    btnDba.className = "btn-action danger";
+  }
 
   const btnCrash = document.getElementById('btnCrashSqlServer');
   if (btnCrash) {
@@ -897,14 +951,18 @@ function renderSqlMap() {
   sqlServer.fanAngle += 0.08;
 
   // Primary server status text
-  sqlCtx.fillStyle = isSqlServerDown ? '#fca5a5' : '#e0f2fe';
   sqlCtx.font = 'bold 8.5px monospace';
   sqlCtx.textAlign = 'center';
-  sqlCtx.fillText(
-    isSqlServerDown ? '⚠️ SPOF CRASH (OFFLINE)' : (sqlServer.memoryActivity === 2 ? '⚠️ DBA TAMPER DETECTED' : 'CENTRAL DB: 192.168.1.10:5432'),
-    sqlServer.x,
-    sy + sqlServer.h + 14
-  );
+  if (isSqlServerDown) {
+    sqlCtx.fillStyle = '#fca5a5';
+    sqlCtx.fillText('⚠️ SPOF CRASH (OFFLINE)', sqlServer.x, sy + sqlServer.h + 14);
+  } else if (isSqlTampered) {
+    sqlCtx.fillStyle = '#f87171';
+    sqlCtx.fillText('🔴 ROOT OVERWRITE ACCEPTED (NO CONSENSUS)', sqlServer.x, sy + sqlServer.h + 14);
+  } else {
+    sqlCtx.fillStyle = '#e0f2fe';
+    sqlCtx.fillText('CENTRAL DB: 192.168.1.10:5432', sqlServer.x, sy + sqlServer.h + 14);
+  }
 
   // Electrical sparks if server crashes
   if (isSqlServerDown && Math.random() < 0.3) {
@@ -948,7 +1006,7 @@ function renderSqlMap() {
 
     sqlCtx.fillStyle = c.id === 'dba' ? '#1f1305' : '#081726';
     sqlCtx.fill();
-    sqlCtx.strokeStyle = c.id === 'dba' ? '#f59e0b' : '#00f0ff';
+    sqlCtx.strokeStyle = c.id === 'dba' ? '#f59e0b' : (c.id === 'alice' && isSqlTampered ? '#ef4444' : '#00f0ff');
     sqlCtx.lineWidth = isAliceOrBob ? 2 : 1;
     sqlCtx.stroke();
 
@@ -956,6 +1014,12 @@ function renderSqlMap() {
     sqlCtx.fillStyle = '#94a3b8';
     sqlCtx.font = '7.5px monospace';
     sqlCtx.textAlign = 'center';
+
+    if (c.id === 'alice' && isSqlTampered) {
+      sqlCtx.fillStyle = '#ef4444';
+      sqlCtx.font = 'bold 8px monospace';
+      sqlCtx.fillText('⚠️ SILENT OVERWRITE: 999,999 ETH', c.x, c.y - 18);
+    }
 
     if (c.id === 'gateway') {
       sqlCtx.fillText('API Gateway', c.x, c.y + 18);
@@ -1061,12 +1125,19 @@ function renderP2PMap() {
     const r = progress * wave.maxRadius;
 
     p2pCtx.save();
+    const isGreen = wave.color === '#10b981';
     for (let ring = 0; ring < 3; ring++) {
       const ringR = r - ring * 38;
       if (ringR > 0) {
         p2pCtx.beginPath();
         p2pCtx.arc(wave.x, wave.y, ringR, 0, Math.PI * 2);
-        p2pCtx.strokeStyle = `rgba(245, 158, 11, ${Math.max(0, (1 - progress) * (0.45 - ring * 0.12))})`;
+        if (isGreen) {
+          p2pCtx.strokeStyle = `rgba(16, 185, 129, ${Math.max(0, (1 - progress) * (0.65 - ring * 0.15))})`;
+          p2pCtx.shadowColor = '#10b981';
+          p2pCtx.shadowBlur = 14;
+        } else {
+          p2pCtx.strokeStyle = `rgba(245, 158, 11, ${Math.max(0, (1 - progress) * (0.45 - ring * 0.12))})`;
+        }
         p2pCtx.lineWidth = 2.5;
         p2pCtx.stroke();
       }
@@ -1163,10 +1234,10 @@ function renderP2PMap() {
     p2pCtx.stroke();
 
     // Proof-of-Stake consensus quorum label
-    p2pCtx.fillStyle = '#fcd34d';
+    p2pCtx.fillStyle = isChainTampered ? '#ef4444' : '#fcd34d';
     p2pCtx.font = 'bold 8px monospace';
     p2pCtx.textAlign = 'center';
-    p2pCtx.fillText('BFT QUORUM (2/3+ VOTE)', (val1.x + val3.x) / 2, val1.y + 18);
+    p2pCtx.fillText(isChainTampered ? '❌ BFT QUORUM: REJECTED' : 'BFT QUORUM (2/3+ VOTE)', (val1.x + val3.x) / 2, val1.y + 18);
     p2pCtx.restore();
   }
 
@@ -1222,6 +1293,15 @@ function renderP2PMap() {
 
       if (isEndpoint) {
         p2pCtx.fillText(n.peerId, n.x, n.y + 3);
+        if (isChainTampered && n.id === 'alice') {
+          p2pCtx.fillStyle = '#ef4444';
+          p2pCtx.font = 'bold 8px monospace';
+          p2pCtx.fillText('⚠️ TAMPERED NODE (QUARANTINED)', n.x, n.y - 18);
+        } else if (isChainTampered && n.id === 'bob') {
+          p2pCtx.fillStyle = '#34d399';
+          p2pCtx.font = 'bold 8px monospace';
+          p2pCtx.fillText('✓ CANONICAL LEDGER RETAINED', n.x, n.y + 25);
+        }
       } else if (isVal) {
         p2pCtx.fillText(n.peerId, n.x, n.y - 12);
       } else {
@@ -1256,8 +1336,8 @@ function renderSqlTable() {
     let statusHtml = '<span style="color: #38bdf8;">In-place Overwrite</span>';
     if (isSqlServerDown) {
       statusHtml = '<span style="color: #f87171;">OFFLINE (ECONNREFUSED)</span>';
-    } else if (isChainTampered && name === 'Alice') {
-      statusHtml = '<span style="color: #f87171; font-weight: 700;">⚠️ SILENTLY ALTERED</span>';
+    } else if (isSqlTampered && name === 'Alice') {
+      statusHtml = '<span style="color: #f87171; font-weight: 700;">⚠️ SILENT OVERWRITE (999,999 ETH)</span>';
       tr.className = 'tampered';
     }
 
@@ -1292,17 +1372,25 @@ function renderBlockCards() {
   blockchain.forEach((b, idx) => {
     if (idx > 0) {
       const link = document.createElement('div');
-      link.className = `chain-link-icon ${isChainTampered ? 'broken' : ''}`;
-      link.innerText = isChainTampered ? '⚡' : '🔗';
+      const isBrokenLink = isChainTampered && idx === 2; // Link between 1 and 2 is severed
+      link.className = `chain-link-icon ${isBrokenLink ? 'broken' : ''}`;
+      link.innerText = isBrokenLink ? '⚡' : '🔗';
       container.appendChild(link);
     }
     const card = document.createElement('div');
-    card.className = `block-card ${isChainTampered ? 'tampered' : ''}`;
+    const isTamperedBlock = isChainTampered && b.index === 1;
+    const isBrokenPointerBlock = isChainTampered && b.index === 2;
+    card.className = `block-card ${isTamperedBlock || isBrokenPointerBlock ? 'tampered' : ''}`;
     card.onclick = () => openBlockInspector(idx);
+
+    let statusTag = 'VALID ✓';
+    if (isTamperedBlock) statusTag = 'POISONED ✗';
+    else if (isBrokenPointerBlock) statusTag = 'BROKEN HASH ⚡';
+
     card.innerHTML = `
       <div class="block-header">
         <span>#${b.index}</span>
-        <span>${isChainTampered ? 'INVALID ✗' : 'VALID ✓'}</span>
+        <span style="${isTamperedBlock || isBrokenPointerBlock ? 'color: #ef4444; font-weight: 700;' : ''}">${statusTag}</span>
       </div>
       <div class="block-field">Tx: <span>${b.data}</span></div>
       <div class="block-field">Prev: <span>${b.prevHash}</span></div>

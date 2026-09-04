@@ -52,7 +52,7 @@ body {
 
 .container {
   width: 100%;
-  max-width: 980px;
+  max-width: 1060px;
   display: flex;
   flex-direction: column;
   gap: 16px;

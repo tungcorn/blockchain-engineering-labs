@@ -77,14 +77,14 @@
     <!-- Pod 3: Security & Tampering Tests -->
     <div class="cockpit-pod">
       <span class="pod-label">DATA SECURITY</span>
-      <button class="btn-action danger" onclick="dbaTamperSql()" title="Simulate DBA root silent in-place overwrite">
+      <button class="btn-action danger" id="btnDbaTamperSql" onclick="toggleDbaTamperSql()" title="Simulate DBA root silent in-place overwrite vs revert">
         ⚠️ DBA Tamper (SQL)
       </button>
       <button class="btn-action danger" id="btnTamperBlockchain" onclick="toggleTamperBlockchain()" title="Simulate unauthorized payload edit breaking the hash chain">
         💥 Tamper Block (Chain)
       </button>
       <button class="btn-action ghost reset-btn" onclick="resetDemo()" title="Reset all simulation states">
-        🔄 Reset
+        🔄 Reset All
       </button>
     </div>
   </section>
