@@ -14,6 +14,12 @@
        1. HEADER HERO (Mô phỏng chính xác phong cách trong ảnh)
        ==================================================================== -->
   <header class="header-hero">
+    <div class="top-bar-controls">
+      <button class="btn-icon" id="soundToggleBtn" onclick="toggleSound()">
+        🔊 SFX: ON
+      </button>
+    </div>
+
     <h1>Neither one forgets a transaction</h1>
     <div class="header-meta">
       <span>15,773 COMMITS</span>
@@ -24,6 +30,28 @@
   </header>
 
   <!-- ====================================================================
+       RACE SIMULATION TOOLBAR (Chạy đua đồng thời để so sánh trực quan)
+       ==================================================================== -->
+  <section class="race-mode-bar">
+    <div class="race-info">
+      <span style="font-size: 1.4rem;">🏁</span>
+      <div>
+        <div class="race-title">SO SÁNH TỐC ĐỘ VÀ ĐỒNG THUẬN (RACE SIMULATION)</div>
+        <div class="race-desc">Chạy đồng thời một giao dịch Alice ➜ Bob (50 ETH) trên cả 2 nền tảng để đối chiếu độ trễ và cơ chế mạng.</div>
+      </div>
+    </div>
+    <button class="btn-race" onclick="startRaceSimulation()">
+      ⚡ Bắt Đầu Chạy Đua
+    </button>
+  </section>
+
+  <!-- Banner giải thích kết quả Race -->
+  <div class="race-insight-banner" id="raceInsightBanner">
+    <strong>💡 KẾT QUẢ ĐỐI CHIẾU:</strong> SQL hoàn tất sau <strong>0.8ms</strong> (do gửi thẳng tới 1 máy chủ DB trung tâm và ghi đè ô nhớ). Blockchain cần <strong>1,420ms</strong> để lan truyền Gossip qua 7 node, xác thực chữ ký số, tính hàm băm SHA-256 và đồng thuận gắn khối. 
+    <br><span style="color: #38bdf8;">👉 Đánh đổi: SQL nhanh hơn gấp 1,000 lần nhưng phụ thuộc hoàn toàn vào niềm tin nơi Admin. Blockchain chậm hơn nhưng tạo ra một sổ cái vĩnh viễn không thể giả mạo!</span>
+  </div>
+
+  <!-- ====================================================================
        2. COMPARISON GRID (Hai cột song song đối chiếu)
        ==================================================================== -->
   <main class="comparison-grid">
@@ -32,13 +60,24 @@
     <section class="card-panel cyan-theme">
       <div class="card-header">
         <span class="badge-tag cyan">SQL (RDBMS)</span>
-        <span class="metric-counter" id="sqlMetricCounter">15,773 QUERIES</span>
+        <span class="metric-counter" id="sqlMetricCounter">
+          <span class="live-dot cyan"></span> 15,773 QUERIES
+        </span>
       </div>
 
       <!-- Canvas mạng Client-Server (Star Topology) -->
       <div class="canvas-wrapper">
-        <span class="canvas-overlay-tag">Topology: Client - Server (Star)</span>
+        <span class="canvas-overlay-tag">Star Topology • Central Server</span>
         <canvas id="sqlNetworkCanvas"></canvas>
+        <div class="canvas-pin-legend">
+          <span class="pin-item"><span class="pin-dot start"></span> Start: Alice (0x71c)</span>
+          <span class="pin-item"><span class="pin-dot goal"></span> Goal: Bob (0x94f)</span>
+        </div>
+      </div>
+
+      <!-- Network Packet Terminal HUD -->
+      <div class="network-hud cyan" id="sqlHud">
+        <span class="hud-prompt">&gt;</span> <span class="hud-log">[TCP Port 5432] Socket connected to Central DB (Latency: 0.8ms)</span>
       </div>
 
       <!-- Bảng dữ liệu SQL Live -->
@@ -76,13 +115,24 @@
     <section class="card-panel amber-theme">
       <div class="card-header">
         <span class="badge-tag amber">SOLIDITY (P2P)</span>
-        <span class="metric-counter" id="solidityMetricCounter">BLOCK #04</span>
+        <span class="metric-counter" id="solidityMetricCounter">
+          <span class="live-dot amber"></span> BLOCK #04
+        </span>
       </div>
 
       <!-- Canvas mạng P2P Gossip Mesh -->
       <div class="canvas-wrapper">
-        <span class="canvas-overlay-tag">Topology: Peer-to-Peer Mesh (Gossip)</span>
+        <span class="canvas-overlay-tag">P2P Mesh • Gossip Protocol</span>
         <canvas id="p2pNetworkCanvas"></canvas>
+        <div class="canvas-pin-legend">
+          <span class="pin-item"><span class="pin-dot start"></span> Node A (Alice)</span>
+          <span class="pin-item"><span class="pin-dot goal"></span> Node B (Bob)</span>
+        </div>
+      </div>
+
+      <!-- Network Packet Terminal HUD -->
+      <div class="network-hud amber" id="blockchainHud">
+        <span class="hud-prompt">&gt;</span> <span class="hud-log">[DevP2P Mesh] 7 Peers synchronized • Consensus: Proof-of-Stake</span>
       </div>
 
       <!-- Sổ cái khối Blockchain Live -->
@@ -103,7 +153,7 @@
       </div>
 
       <div class="panel-footer-note">
-        spreads in gossip rings, hashes bind forever
+        spreads in gossip rings, hashes bind forever · <span style="color: #f59e0b; cursor: pointer;">🔍 click block to inspect SHA-256</span>
       </div>
     </section>
 
@@ -113,13 +163,16 @@
        3. "THE ONLY DIFFERENCE" CODE COMPARISON (Khung code như ảnh)
        ==================================================================== -->
   <section class="code-comparison-card">
-    <div class="code-header-tag">THE ONLY DIFFERENCE</div>
+    <div class="code-header-tag">
+      <span>THE ONLY DIFFERENCE</span>
+      <span style="font-weight: 400; color: #64748b;">hover code to inspect architecture</span>
+    </div>
     <div class="code-editor">
-      <div class="code-line">
+      <div class="code-line hover-sql">
         <span class="line-num">1</span>
         <span class="line-content kw-comment">// SQL (Client-Server): Ghi đè trạng thái tại chỗ (Mutable in-place)</span>
       </div>
-      <div class="code-line">
+      <div class="code-line hover-sql">
         <span class="line-num">2</span>
         <span class="line-content">
           <span class="kw-cyan">UPDATE</span> accounts <span class="kw-cyan">SET</span> balance = balance - amount <span class="kw-cyan">WHERE</span> id = sender; 
@@ -130,25 +183,25 @@
         <span class="line-num">3</span>
         <span class="line-content kw-comment">// Solidity (P2P Ledger): Cập nhật State + Tạo vết mật mã Bất biến (Immutable)</span>
       </div>
-      <div class="code-line">
+      <div class="code-line hover-blockchain">
         <span class="line-num">4</span>
         <span class="line-content">
           <span class="kw-gold">require</span>(balances[msg.sender] &gt;= amount, <span class="kw-str">"Insufficient"</span>);
         </span>
       </div>
-      <div class="code-line">
+      <div class="code-line hover-blockchain">
         <span class="line-num">5</span>
         <span class="line-content">
           balances[msg.sender] -= amount; <span class="highlight-badge amber">drop in-place for block hash</span>
         </span>
       </div>
-      <div class="code-line">
+      <div class="code-line hover-blockchain">
         <span class="line-num">6</span>
         <span class="line-content">
           balances[to] += amount;
         </span>
       </div>
-      <div class="code-line">
+      <div class="code-line hover-blockchain">
         <span class="line-num">7</span>
         <span class="line-content">
           <span class="kw-purple">emit</span> <span class="kw-blue">Transfer</span>(msg.sender, to, amount, block.timestamp);
@@ -223,6 +276,55 @@
     </div>
   </section>
 
+</div>
+
+<!-- ====================================================================
+     BLOCK CRYPTOGRAPHIC INSPECTOR MODAL (MỔ XẺ MẬT MÃ KHỐI SHA-256)
+     ==================================================================== -->
+<div class="modal-backdrop" id="blockInspectorModal" onclick="if(event.target===this) closeBlockInspector()">
+  <div class="modal-window">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span>🔍 MỔ XẺ MẬT MÃ KHỐI:</span>
+        <span id="inspectIndex" style="color: #f59e0b;">#1</span>
+      </div>
+      <button class="modal-close-btn" onclick="closeBlockInspector()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="formula-box">
+        <strong>CÔNG THỨC TOÁN HỌC KHỐI CHUỖI:</strong><br>
+        <code>Current_Hash = SHA256( Index + Timestamp + Data + Previous_Hash + Nonce )</code><br>
+        <span style="font-size: 0.7rem; color: #64748b;">Chỉ cần thay đổi 1 ký tự trong Data, toàn bộ mã băm sẽ đổi khác hoàn toàn (Hiệu ứng Thác Đổ - Avalanche Effect).</span>
+      </div>
+
+      <div class="field-group">
+        <span class="field-label">Thời Gian Đóng Dấu (Timestamp):</span>
+        <div class="field-value-static" id="inspectTimestamp">2026-01-01T00:00:00Z</div>
+      </div>
+
+      <div class="field-group">
+        <span class="field-label">Liên Kết Khối Trước (Previous Block Hash):</span>
+        <div class="field-value-static" id="inspectPrevHash" style="color: #38bdf8;">0000000000000000</div>
+      </div>
+
+      <div class="field-group">
+        <span class="field-label">Số Thử Nonce (Proof-of-Work):</span>
+        <div class="field-value-static" id="inspectNonce">48201</div>
+      </div>
+
+      <div class="field-group">
+        <span class="field-label" style="color: #f59e0b;">✍️ Dữ Liệu Giao Dịch (Thử gõ sửa đổi để xem mã băm nhảy trực tiếp):</span>
+        <input type="text" class="field-input-live" id="inspectDataInput" oninput="onInspectDataChange()">
+      </div>
+
+      <div class="hash-output-box" id="inspectHashBox">
+        <span class="hash-label">MÃ BĂM SHA-256 ĐƯỢC TÍNH TOÁN THEO THỜI GIAN THỰC:</span>
+        <div class="hash-value-live" id="inspectHashVal">calculating...</div>
+        <div id="inspectHashStatus" style="font-size: 0.72rem; margin-top: 4px;"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="app.js"></script>

@@ -1,9 +1,162 @@
 /**
- * APP.JS - MÔ PHỎNG TƯƠNG TÁC: SQL CLIENT-SERVER VS BLOCKCHAIN P2P SOLIDITY
- * Thiết kế giao diện và hiệu ứng mạng máy tính cho sinh viên môn Chuỗi khối
+ * APP.JS - MÔ PHỎNG NÂNG CAO: SQL CLIENT-SERVER VS BLOCKCHAIN SOLIDITY
+ * Tích hợp Web Audio API Synthesizer 2.0, Race Mode, và Block Inspector Modal
  */
 
-// Helper: tính mã băm SHA-256 thật bằng Web Crypto API
+// ============================================================================
+// 1. WEB AUDIO API SYNTHESIZER 2.0 (HỆ THỐNG ÂM THANH HI-TECH THUẦN TÚY)
+// ============================================================================
+let audioCtx = null;
+let soundEnabled = true;
+
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) audioCtx = new AudioContext();
+  }
+}
+
+// Thang âm ngũ cung cho Gossip Arpeggio
+const gossipPitches = [261.63, 329.63, 392.00, 493.88, 523.25, 659.25, 783.99];
+
+function playSound(type, param = 0) {
+  if (!soundEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const now = audioCtx.currentTime;
+
+  if (type === 'hover') {
+    // Tiếng tick rất khẽ khi rê chuột qua phần tử tương tác
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1400, now);
+    gain.gain.setValueAtTime(0.02, now);
+    gain.gain.linearRampToValueAtTime(0.001, now + 0.015);
+    osc.start(now);
+    osc.stop(now + 0.015);
+  } else if (type === 'click') {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.exponentialRampToValueAtTime(440, now + 0.04);
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.04);
+    osc.start(now);
+    osc.stop(now + 0.04);
+  } else if (type === 'tcp_send') {
+    // Tiếng gói tin TCP phóng đi
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(600, now);
+    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.06);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.06);
+    osc.start(now);
+    osc.stop(now + 0.06);
+  } else if (type === 'gossip_hop') {
+    // Tiếng từng node nhận gói tin gossip (tạo thành chuỗi hợp âm)
+    const pitch = gossipPitches[param % gossipPitches.length];
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(pitch, now);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.005, now + 0.18);
+    osc.start(now);
+    osc.stop(now + 0.18);
+  } else if (type === 'block_mined') {
+    // Tiếng chuông pha lê khi đào và gắn khối thành công (2 oscillator hòa âm)
+    [587.33, 880.00].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + i * 0.04);
+      gain.gain.setValueAtTime(0.12, now + i * 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.005, now + 0.35);
+      osc.start(now + i * 0.04);
+      osc.stop(now + 0.35);
+    });
+  } else if (type === 'alarm') {
+    // Còi báo động hai tông luân phiên khi bị sửa trộm hoặc tấn công
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(520, now);
+    osc.frequency.setValueAtTime(320, now + 0.08);
+    osc.frequency.setValueAtTime(520, now + 0.16);
+    gain.gain.setValueAtTime(0.18, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.28);
+    osc.start(now);
+    osc.stop(now + 0.28);
+  } else if (type === 'restore') {
+    // Hợp âm chiến thắng khi khôi phục đồng thuận
+    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+      gain.gain.setValueAtTime(0.12, now + idx * 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.005, now + 0.4);
+      osc.start(now + idx * 0.06);
+      osc.stop(now + 0.4);
+    });
+  } else if (type === 'modal_open') {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(350, now);
+    osc.frequency.exponentialRampToValueAtTime(700, now + 0.08);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+    osc.start(now);
+    osc.stop(now + 0.08);
+  } else if (type === 'modal_close') {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, now);
+    osc.frequency.exponentialRampToValueAtTime(300, now + 0.05);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+    osc.start(now);
+    osc.stop(now + 0.05);
+  }
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('soundToggleBtn');
+  if (btn) {
+    btn.innerHTML = soundEnabled ? '🔊 SFX: ON' : '🔇 SFX: OFF';
+  }
+  if (soundEnabled) playSound('click');
+}
+
+
+// Helper tính SHA-256 thật bằng Web Crypto
 async function sha256(message) {
   const msgBuffer = new TextEncoder().encode(message);
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -11,21 +164,23 @@ async function sha256(message) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+
 // ============================================================================
-// 1. MÔ PHỎNG CANVAS MẠNG CLIENT-SERVER (SQL)
+// 2. CANVAS MẠNG MÁY TÍNH CLIENT - SERVER (SQL RDBMS)
 // ============================================================================
 const sqlCanvas = document.getElementById('sqlNetworkCanvas');
 const sqlCtx = sqlCanvas ? sqlCanvas.getContext('2d') : null;
 
 let sqlPackets = [];
-const sqlServerNode = { x: 0, y: 0, label: 'DB SERVER', type: 'server' };
+let sqlRadarAngle = 0;
+const sqlServerNode = { x: 0, y: 0, label: 'CENTRAL DB', type: 'server' };
 const sqlClientNodes = [];
 
 function initSqlNetwork() {
   if (!sqlCanvas) return;
   const rect = sqlCanvas.parentElement.getBoundingClientRect();
   sqlCanvas.width = rect.width;
-  sqlCanvas.height = 220;
+  sqlCanvas.height = 240;
 
   const cx = sqlCanvas.width / 2;
   const cy = sqlCanvas.height / 2;
@@ -33,15 +188,19 @@ function initSqlNetwork() {
   sqlServerNode.y = cy;
 
   sqlClientNodes.length = 0;
-  const radius = Math.min(cx, cy) - 35;
-  const clientCount = 4;
-  for (let i = 0; i < clientCount; i++) {
-    const angle = (i / clientCount) * Math.PI * 2 - Math.PI / 4;
+  const rx = Math.min(cx, cy) * 0.78;
+  const ry = Math.min(cx, cy) * 0.65;
+  const labels = ['Alice (0x71c)', 'Bob (0x94f)', 'Charlie', 'Dave'];
+
+  for (let i = 0; i < 4; i++) {
+    const angle = (i / 4) * Math.PI * 2 - Math.PI / 4;
     sqlClientNodes.push({
-      x: cx + Math.cos(angle) * radius,
-      y: cy + Math.sin(angle) * radius,
-      label: `Client ${i + 1}`,
-      type: 'client'
+      x: cx + Math.cos(angle) * rx,
+      y: cy + Math.sin(angle) * ry,
+      label: labels[i],
+      isAlice: i === 0,
+      isBob: i === 1,
+      pulse: 0
     });
   }
 }
@@ -49,37 +208,87 @@ function initSqlNetwork() {
 function triggerSqlPacket(clientIndex = 0) {
   if (!sqlClientNodes[clientIndex]) return;
   const client = sqlClientNodes[clientIndex];
-  // Packet từ client tới server
+  client.pulse = 1;
+  playSound('tcp_send');
+
   sqlPackets.push({
     startX: client.x,
     startY: client.y,
     targetX: sqlServerNode.x,
     targetY: sqlServerNode.y,
     progress: 0,
-    speed: 0.05,
+    speed: 0.07,
     color: '#00f0ff',
     returning: false,
     clientRef: client
   });
+
+  updateSqlHud(`[TCP 192.168.1.10:5432] SYN -> ACK | UPDATE accounts SET balance = balance - 50 (0.82ms)`);
+}
+
+function updateSqlHud(msg, isAlert = false) {
+  const hud = document.getElementById('sqlHud');
+  if (!hud) return;
+  hud.className = `network-hud cyan ${isAlert ? 'alert' : ''}`;
+  hud.innerHTML = `<span class="hud-prompt">&gt;</span> <span class="hud-log">${msg}</span>`;
+}
+
+function drawCyberGrid(ctx, w, h, tint = 'cyan') {
+  ctx.strokeStyle = tint === 'cyan' ? 'rgba(0, 240, 255, 0.03)' : 'rgba(245, 158, 11, 0.03)';
+  ctx.lineWidth = 1;
+  const step = 24;
+
+  for (let x = 0; x < w; x += step) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, h);
+    ctx.stroke();
+  }
+  for (let y = 0; y < h; y += step) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
 }
 
 function updateAndDrawSqlNetwork() {
   if (!sqlCtx) return;
-  sqlCtx.clearRect(0, 0, sqlCanvas.width, sqlCanvas.height);
+  const w = sqlCanvas.width;
+  const h = sqlCanvas.height;
+  sqlCtx.clearRect(0, 0, w, h);
 
-  // 1. Vẽ đường kết nối hình sao (Star Topology)
-  sqlCtx.strokeStyle = '#172554';
-  sqlCtx.lineWidth = 1.5;
-  sqlCtx.setLineDash([3, 3]);
+  // 1. Nền lưới cyberpunk
+  drawCyberGrid(sqlCtx, w, h, 'cyan');
+
+  // 2. Radar sweep quanh Server trung tâm
+  sqlRadarAngle += 0.03;
+  sqlCtx.save();
+  sqlCtx.beginPath();
+  sqlCtx.arc(sqlServerNode.x, sqlServerNode.y, 45, 0, Math.PI * 2);
+  sqlCtx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+  sqlCtx.stroke();
+  sqlCtx.beginPath();
+  sqlCtx.moveTo(sqlServerNode.x, sqlServerNode.y);
+  sqlCtx.arc(sqlServerNode.x, sqlServerNode.y, 45, sqlRadarAngle, sqlRadarAngle + 0.5);
+  sqlCtx.closePath();
+  sqlCtx.fillStyle = 'rgba(0, 240, 255, 0.04)';
+  sqlCtx.fill();
+  sqlCtx.restore();
+
+  // 3. Đường kết nối hình sao (Star Topology bus lines)
   sqlClientNodes.forEach(node => {
+    sqlCtx.strokeStyle = '#142033';
+    sqlCtx.lineWidth = 1.5;
+    sqlCtx.setLineDash([4, 4]);
     sqlCtx.beginPath();
     sqlCtx.moveTo(node.x, node.y);
     sqlCtx.lineTo(sqlServerNode.x, sqlServerNode.y);
     sqlCtx.stroke();
+    sqlCtx.setLineDash([]);
   });
-  sqlCtx.setLineDash([]);
 
-  // 2. Cập nhật và vẽ các gói tin TCP đang bay
+  // 4. Các gói tin TCP bay qua lại
   for (let i = sqlPackets.length - 1; i >= 0; i--) {
     const p = sqlPackets[i];
     p.progress += p.speed;
@@ -88,7 +297,7 @@ function updateAndDrawSqlNetwork() {
 
     sqlCtx.fillStyle = p.color;
     sqlCtx.shadowColor = p.color;
-    sqlCtx.shadowBlur = 8;
+    sqlCtx.shadowBlur = 10;
     sqlCtx.beginPath();
     sqlCtx.arc(curX, curY, 4, 0, Math.PI * 2);
     sqlCtx.fill();
@@ -96,7 +305,6 @@ function updateAndDrawSqlNetwork() {
 
     if (p.progress >= 1) {
       if (!p.returning) {
-        // Đến server, phản hồi ngược về client
         p.startX = sqlServerNode.x;
         p.startY = sqlServerNode.y;
         p.targetX = p.clientRef.x;
@@ -109,28 +317,49 @@ function updateAndDrawSqlNetwork() {
     }
   }
 
-  // 3. Vẽ Client Nodes
+  // 5. Vẽ Client Nodes
   sqlClientNodes.forEach(node => {
-    sqlCtx.fillStyle = '#0f172a';
-    sqlCtx.strokeStyle = '#38bdf8';
+    if (node.pulse > 0) {
+      node.pulse += 0.5;
+      sqlCtx.strokeStyle = `rgba(0, 240, 255, ${Math.max(0, 1 - node.pulse / 20)})`;
+      sqlCtx.lineWidth = 2;
+      sqlCtx.beginPath();
+      sqlCtx.arc(node.x, node.y, 8 + node.pulse, 0, Math.PI * 2);
+      sqlCtx.stroke();
+      if (node.pulse > 20) node.pulse = 0;
+    }
+
+    let borderColor = '#38bdf8';
+    if (node.isAlice) borderColor = '#38bdf8';
+    if (node.isBob) borderColor = '#34d399';
+
+    sqlCtx.fillStyle = '#0b1320';
+    sqlCtx.strokeStyle = borderColor;
     sqlCtx.lineWidth = 2;
     sqlCtx.beginPath();
     sqlCtx.arc(node.x, node.y, 10, 0, Math.PI * 2);
     sqlCtx.fill();
     sqlCtx.stroke();
 
+    if (node.isAlice || node.isBob) {
+      sqlCtx.fillStyle = node.isAlice ? '#38bdf8' : '#34d399';
+      sqlCtx.beginPath();
+      sqlCtx.arc(node.x, node.y, 4, 0, Math.PI * 2);
+      sqlCtx.fill();
+    }
+
     sqlCtx.fillStyle = '#94a3b8';
     sqlCtx.font = '10px "JetBrains Mono"';
     sqlCtx.textAlign = 'center';
-    sqlCtx.fillText(node.label, node.x, node.y + 20);
+    sqlCtx.fillText(node.label, node.x, node.y + 22);
   });
 
-  // 4. Vẽ Server Node trung tâm
+  // 6. Vẽ Server Node trung tâm
   sqlCtx.fillStyle = '#0284c7';
   sqlCtx.shadowColor = '#00f0ff';
-  sqlCtx.shadowBlur = 12;
+  sqlCtx.shadowBlur = 16;
   sqlCtx.beginPath();
-  sqlCtx.arc(sqlServerNode.x, sqlServerNode.y, 16, 0, Math.PI * 2);
+  sqlCtx.arc(sqlServerNode.x, sqlServerNode.y, 18, 0, Math.PI * 2);
   sqlCtx.fill();
   sqlCtx.shadowBlur = 0;
 
@@ -139,12 +368,12 @@ function updateAndDrawSqlNetwork() {
   sqlCtx.textAlign = 'center';
   sqlCtx.fillText('SQL DB', sqlServerNode.x, sqlServerNode.y + 3);
   sqlCtx.fillStyle = '#00f0ff';
-  sqlCtx.fillText('CENTRAL', sqlServerNode.x, sqlServerNode.y + 28);
+  sqlCtx.fillText('CENTRAL', sqlServerNode.x, sqlServerNode.y + 30);
 }
 
 
 // ============================================================================
-// 2. MÔ PHỎNG CANVAS MẠNG P2P GOSSIP (SOLIDITY BLOCKCHAIN)
+// 3. CANVAS MẠNG MÁY TÍNH PEER-TO-PEER GOSSIP (SOLIDITY BLOCKCHAIN)
 // ============================================================================
 const p2pCanvas = document.getElementById('p2pNetworkCanvas');
 const p2pCtx = p2pCanvas ? p2pCanvas.getContext('2d') : null;
@@ -157,31 +386,41 @@ function initP2PNetwork() {
   if (!p2pCanvas) return;
   const rect = p2pCanvas.parentElement.getBoundingClientRect();
   p2pCanvas.width = rect.width;
-  p2pCanvas.height = 220;
+  p2pCanvas.height = 240;
 
   const cx = p2pCanvas.width / 2;
   const cy = p2pCanvas.height / 2;
   const rx = p2pCanvas.width * 0.4;
-  const ry = p2pCanvas.height * 0.35;
+  const ry = p2pCanvas.height * 0.36;
 
   p2pNodes = [];
   const nodeCount = 7;
+  const labels = [
+    'Node A (Alice)',
+    'Node B (Bob)',
+    'Node C',
+    'Node D (Validator)',
+    'Node E',
+    'Node F',
+    'Node G'
+  ];
+
   for (let i = 0; i < nodeCount; i++) {
     const angle = (i / nodeCount) * Math.PI * 2;
-    // Điểm hơi lệch ngẫu nhiên để tạo cảm giác Mesh topology tự nhiên
     const jitterX = ((i % 3) - 1) * 12;
     const jitterY = (((i + 1) % 3) - 1) * 10;
     p2pNodes.push({
       id: i,
       x: cx + Math.cos(angle) * rx + jitterX,
       y: cy + Math.sin(angle) * ry + jitterY,
-      label: `Node ${String.fromCharCode(65 + i)}`,
-      pulseRadius: 0,
-      isMining: false
+      label: labels[i],
+      isAlice: i === 0,
+      isBob: i === 1,
+      isValidator: i === 3,
+      pulseRadius: 0
     });
   }
 
-  // Tạo các cạnh liên kết Mesh (mỗi node liên kết với 2-3 láng giềng)
   p2pEdges = [];
   for (let i = 0; i < nodeCount; i++) {
     const next = (i + 1) % nodeCount;
@@ -191,23 +430,33 @@ function initP2PNetwork() {
   }
 }
 
-function triggerGossipWave(sourceNodeId = 0) {
+function updateBlockchainHud(msg, isAlert = false) {
+  const hud = document.getElementById('blockchainHud');
+  if (!hud) return;
+  hud.className = `network-hud amber ${isAlert ? 'alert' : ''}`;
+  hud.innerHTML = `<span class="hud-prompt">&gt;</span> <span class="hud-log">${msg}</span>`;
+}
+
+function triggerGossipWave(sourceNodeId = 0, onComplete = null) {
   if (!p2pNodes.length) return;
+  updateBlockchainHud(`[P2P GOSSIP] Node_A broadcasts Tx (Alice->Bob 20 ETH) to peers...`);
 
   const visited = new Set();
-  const queue = [{ id: sourceNodeId, delay: 0 }];
+  const queue = [{ id: sourceNodeId, delay: 0, hop: 0 }];
   visited.add(sourceNodeId);
 
-  while (queue.length > 0) {
-    const { id, delay } = queue.shift();
-    const currentNode = p2pNodes[id];
+  let maxDelay = 0;
 
-    // Tạo hiệu ứng sóng lan truyền (Gossip wave)
+  while (queue.length > 0) {
+    const { id, delay, hop } = queue.shift();
+    const currentNode = p2pNodes[id];
+    if (delay > maxDelay) maxDelay = delay;
+
     setTimeout(() => {
       currentNode.pulseRadius = 1;
+      playSound('gossip_hop', hop);
     }, delay);
 
-    // Tìm các node láng giềng trong p2pEdges
     const neighbors = [];
     p2pEdges.forEach(([u, v]) => {
       if (u === id && !visited.has(v)) neighbors.push(v);
@@ -225,27 +474,38 @@ function triggerGossipWave(sourceNodeId = 0) {
           targetX: targetNode.x,
           targetY: targetNode.y,
           progress: 0,
-          speed: 0.07,
+          speed: 0.075,
           color: '#f59e0b'
         });
       }, delay);
 
-      queue.push({ id: neighborId, delay: delay + 180 });
+      queue.push({ id: neighborId, delay: delay + 160, hop: hop + 1 });
     });
   }
+
+  setTimeout(() => {
+    playSound('block_mined');
+    updateBlockchainHud(`[CONSENSUS] 7/7 Nodes verified ECDSA signature · Block mined into ledger.`);
+    if (onComplete) onComplete();
+  }, maxDelay + 250);
 }
 
 function updateAndDrawP2PNetwork() {
   if (!p2pCtx) return;
-  p2pCtx.clearRect(0, 0, p2pCanvas.width, p2pCanvas.height);
+  const w = p2pCanvas.width;
+  const h = p2pCanvas.height;
+  p2pCtx.clearRect(0, 0, w, h);
 
-  // 1. Vẽ các cạnh liên kết P2P Mesh
-  p2pCtx.strokeStyle = '#272015';
-  p2pCtx.lineWidth = 1.5;
+  // 1. Nền lưới cyberpunk
+  drawCyberGrid(p2pCtx, w, h, 'amber');
+
+  // 2. Cạnh Mesh liên kết P2P
   p2pEdges.forEach(([u, v]) => {
     const n1 = p2pNodes[u];
     const n2 = p2pNodes[v];
     if (n1 && n2) {
+      p2pCtx.strokeStyle = isChainTampered ? '#451a1a' : '#261b0f';
+      p2pCtx.lineWidth = 1.5;
       p2pCtx.beginPath();
       p2pCtx.moveTo(n1.x, n1.y);
       p2pCtx.lineTo(n2.x, n2.y);
@@ -253,7 +513,7 @@ function updateAndDrawP2PNetwork() {
     }
   });
 
-  // 2. Vẽ các gói tin Gossip lan truyền
+  // 3. Gói tin Gossip bay theo các đợt sóng
   for (let i = p2pPackets.length - 1; i >= 0; i--) {
     const p = p2pPackets[i];
     p.progress += p.speed;
@@ -262,7 +522,7 @@ function updateAndDrawP2PNetwork() {
 
     p2pCtx.fillStyle = p.color;
     p2pCtx.shadowColor = p.color;
-    p2pCtx.shadowBlur = 8;
+    p2pCtx.shadowBlur = 10;
     p2pCtx.beginPath();
     p2pCtx.arc(curX, curY, 3.5, 0, Math.PI * 2);
     p2pCtx.fill();
@@ -273,42 +533,54 @@ function updateAndDrawP2PNetwork() {
     }
   }
 
-  // 3. Vẽ Nodes và hiệu ứng vòng sóng lan tỏa (Gossip rings)
+  // 4. Vòng sóng lan truyền (Gossip wave rings)
   p2pNodes.forEach(node => {
     if (node.pulseRadius > 0) {
-      node.pulseRadius += 0.6;
-      p2pCtx.strokeStyle = `rgba(245, 158, 11, ${Math.max(0, 1 - node.pulseRadius / 22)})`;
+      node.pulseRadius += 0.8;
+      const alpha = Math.max(0, 1 - node.pulseRadius / 32);
+      p2pCtx.strokeStyle = `rgba(245, 158, 11, ${alpha})`;
       p2pCtx.lineWidth = 1.5;
       p2pCtx.beginPath();
       p2pCtx.arc(node.x, node.y, node.pulseRadius, 0, Math.PI * 2);
       p2pCtx.stroke();
-      if (node.pulseRadius > 22) node.pulseRadius = 0;
+      if (node.pulseRadius > 32) node.pulseRadius = 0;
     }
 
-    p2pCtx.fillStyle = '#1c1917';
-    p2pCtx.strokeStyle = isChainTampered ? '#ef4444' : '#f59e0b';
+    let nodeColor = isChainTampered ? '#ef4444' : '#f59e0b';
+    if (node.isAlice) nodeColor = '#38bdf8';
+    if (node.isBob) nodeColor = '#34d399';
+
+    p2pCtx.fillStyle = '#14110e';
+    p2pCtx.strokeStyle = nodeColor;
     p2pCtx.lineWidth = 2;
     p2pCtx.beginPath();
-    p2pCtx.arc(node.x, node.y, 9, 0, Math.PI * 2);
+    p2pCtx.arc(node.x, node.y, 10, 0, Math.PI * 2);
     p2pCtx.fill();
     p2pCtx.stroke();
 
-    p2pCtx.fillStyle = isChainTampered ? '#fca5a5' : '#e2e8f0';
+    if (node.isAlice || node.isBob) {
+      p2pCtx.fillStyle = node.isAlice ? '#38bdf8' : '#34d399';
+      p2pCtx.beginPath();
+      p2pCtx.arc(node.x, node.y, 4, 0, Math.PI * 2);
+      p2pCtx.fill();
+    }
+
+    p2pCtx.fillStyle = isChainTampered ? '#fca5a5' : '#cbd5e1';
     p2pCtx.font = '9px "JetBrains Mono"';
     p2pCtx.textAlign = 'center';
-    p2pCtx.fillText(node.label, node.x, node.y + 18);
+    p2pCtx.fillText(node.label, node.x, node.y + 20);
   });
 }
 
-// Vòng lặp Render chung cho cả 2 Canvas
 function renderLoop() {
   updateAndDrawSqlNetwork();
   updateAndDrawP2PNetwork();
   requestAnimationFrame(renderLoop);
 }
 
+
 // ============================================================================
-// 3. LOGIC TRẠNG THÁI DỮ LIỆU SQL
+// 4. LOGIC TRẠNG THÁI DỮ LIỆU SQL
 // ============================================================================
 let sqlAccounts = {
   Alice: 500,
@@ -327,6 +599,8 @@ function renderSqlTable(highlightKey = null, isTampered = false) {
     if (highlightKey === name) tr.classList.add('highlight-update');
     if (isTampered && name === 'Alice') tr.classList.add('tampered');
 
+    tr.addEventListener('mouseenter', () => playSound('hover'));
+
     tr.innerHTML = `
       <td>0x${name}</td>
       <td><strong>${balance.toLocaleString()} ETH</strong></td>
@@ -337,6 +611,7 @@ function renderSqlTable(highlightKey = null, isTampered = false) {
 }
 
 function executeSqlQuery() {
+  playSound('click');
   if (sqlAccounts.Alice >= 50) {
     sqlAccounts.Alice -= 50;
     sqlAccounts.Bob += 50;
@@ -344,26 +619,29 @@ function executeSqlQuery() {
     sqlAccounts.Alice += 150;
   }
   sqlQueryCount++;
-  document.getElementById('sqlMetricCounter').innerText = `${sqlQueryCount.toLocaleString()} QUERIES`;
+  document.getElementById('sqlMetricCounter').innerHTML = `<span class="live-dot cyan"></span> ${sqlQueryCount.toLocaleString()} QUERIES`;
 
   triggerSqlPacket(0);
   renderSqlTable('Alice', false);
 }
 
 function dbaTamperSql() {
+  playSound('alarm');
   sqlAccounts.Alice = 999999;
   renderSqlTable('Alice', true);
+  updateSqlHud(`[DBA TAMPER] UPDATE accounts SET balance = 999999 WHERE id = 'Alice' (ACCEPTED BY ROOT)`, true);
+
   alert(
-    "[SQL DBA TAMPER THÀNH CÔNG]\n" +
-    "Quản trị viên đã chạy lệnh:\n" +
+    "[SQL DBA TAMPER THÀNH CÔNG]\n\n" +
+    "Quản trị viên đã can thiệp vào máy chủ SQL:\n" +
     "UPDATE accounts SET balance = 999999 WHERE id = 'Alice';\n\n" +
-    "=> Máy chủ trung tâm lưu dữ liệu ngay lập tức! Không có cảnh báo mật mã nào được kích hoạt."
+    "=> Máy chủ trung tâm lưu dữ liệu ngay lập tức! Không có cảnh báo mật mã nào từ mạng máy tính."
   );
 }
 
 
 // ============================================================================
-// 4. LOGIC CHUỖI KHỐI SOLIDITY (BLOCKCHAIN)
+// 5. LOGIC CHUỖI KHỐI SOLIDITY (BLOCKCHAIN) & INSPECTOR MODAL
 // ============================================================================
 let blockchain = [];
 let isChainTampered = false;
@@ -371,31 +649,39 @@ let blockCounter = 4;
 
 async function initBlockchain() {
   blockchain = [];
-  const genesisHash = await sha256("0|2026-01-01|Genesis Block|0000000000000000");
+  const genesisHash = await sha256("0|2026-01-01|Genesis Block|0000000000000000|0");
   blockchain.push({
     index: 0,
+    timestamp: "2026-01-01T00:00:00Z",
     data: "Genesis Block",
-    prevHash: "00000000",
+    prevHash: "0000000000000000",
+    nonce: 0,
     hash: genesisHash.slice(0, 8),
     fullHash: genesisHash,
     tampered: false
   });
 
-  const b1Hash = await sha256(`1|Deposit 500 ETH|${genesisHash}`);
+  const b1Hash = await sha256(`1|2026-01-01T00:01:00Z|Deposit 500 ETH|${genesisHash}|28491`);
   blockchain.push({
     index: 1,
+    timestamp: "2026-01-01T00:01:00Z",
     data: "Deposit 500 ETH",
     prevHash: genesisHash.slice(0, 8),
+    prevFullHash: genesisHash,
+    nonce: 28491,
     hash: b1Hash.slice(0, 8),
     fullHash: b1Hash,
     tampered: false
   });
 
-  const b2Hash = await sha256(`2|Transfer 50 Alice->Bob|${b1Hash}`);
+  const b2Hash = await sha256(`2|2026-01-01T00:02:00Z|Alice->Bob: 50 ETH|${b1Hash}|94012`);
   blockchain.push({
     index: 2,
+    timestamp: "2026-01-01T00:02:00Z",
     data: "Alice->Bob: 50 ETH",
     prevHash: b1Hash.slice(0, 8),
+    prevFullHash: b1Hash,
+    nonce: 94012,
     hash: b2Hash.slice(0, 8),
     fullHash: b2Hash,
     tampered: false
@@ -410,17 +696,27 @@ function renderBlockchainCards() {
   container.innerHTML = '';
 
   blockchain.forEach((block, idx) => {
+    if (idx > 0) {
+      const linkIcon = document.createElement('div');
+      linkIcon.className = `chain-link-icon ${block.tampered ? 'broken' : ''}`;
+      linkIcon.innerHTML = block.tampered ? '⚡' : '🔗';
+      container.appendChild(linkIcon);
+    }
+
     const card = document.createElement('div');
     card.className = 'block-card';
     if (idx === blockchain.length - 1 && !isChainTampered) card.classList.add('latest');
     if (block.tampered) card.classList.add('tampered');
+
+    card.addEventListener('mouseenter', () => playSound('hover'));
+    card.addEventListener('click', () => openBlockInspector(idx));
 
     card.innerHTML = `
       <div class="block-header">
         <span>#${block.index}</span>
         <span>${block.tampered ? 'INVALID ✗' : 'VALID ✓'}</span>
       </div>
-      <div class="block-field">Data: <span>${block.data}</span></div>
+      <div class="block-field">Tx: <span>${block.data}</span></div>
       <div class="block-field">Prev: <span>${block.prevHash}</span></div>
       <div class="block-field">Hash: <span>${block.hash}</span></div>
     `;
@@ -429,7 +725,9 @@ function renderBlockchainCards() {
 }
 
 async function addBlockchainTransaction() {
+  playSound('click');
   if (isChainTampered) {
+    playSound('alarm');
     alert("Chuỗi hiện đang bị đứt gãy do phát hiện gian lận! Vui lòng khôi phục chuỗi đồng thuận trước.");
     return;
   }
@@ -438,41 +736,45 @@ async function addBlockchainTransaction() {
   const prevBlock = blockchain[blockchain.length - 1];
   const newIndex = blockchain.length;
   const newData = `Alice->Bob: 20 ETH`;
-  const newHash = await sha256(`${newIndex}|${newData}|${prevBlock.fullHash}`);
+  const newNonce = Math.floor(Math.random() * 90000) + 10000;
+  const newTimestamp = new Date().toISOString();
+  const newHash = await sha256(`${newIndex}|${newTimestamp}|${newData}|${prevBlock.fullHash}|${newNonce}`);
 
-  triggerGossipWave(0);
-
-  setTimeout(() => {
+  triggerGossipWave(0, () => {
     blockchain.push({
       index: newIndex,
+      timestamp: newTimestamp,
       data: newData,
       prevHash: prevBlock.hash,
+      prevFullHash: prevBlock.fullHash,
+      nonce: newNonce,
       hash: newHash.slice(0, 8),
       fullHash: newHash,
       tampered: false
     });
-    document.getElementById('solidityMetricCounter').innerText = `BLOCK #${String(blockCounter).padStart(2, '0')}`;
+    document.getElementById('solidityMetricCounter').innerHTML = `<span class="live-dot amber"></span> BLOCK #${String(blockCounter).padStart(2, '0')}`;
     renderBlockchainCards();
-  }, 400);
+  });
 }
 
 async function toggleTamperBlockchain() {
   const btn = document.getElementById('btnTamperBlockchain');
   if (!isChainTampered) {
-    // Sửa khối số 1
+    playSound('alarm');
     isChainTampered = true;
     blockchain[1].data = "HACK: Alice->Bob: 9999 ETH";
-    const fakeHash = await sha256(`1|HACK|${blockchain[0].fullHash}`);
+    const fakeHash = await sha256(`1|HACK|${blockchain[0].fullHash}|99999`);
     blockchain[1].hash = fakeHash.slice(0, 8);
+    blockchain[1].fullHash = fakeHash;
     blockchain[1].tampered = true;
 
-    // Các khối sau bị đứt liên kết
     for (let i = 2; i < blockchain.length; i++) {
       blockchain[i].tampered = true;
     }
 
     renderBlockchainCards();
-    if (btn) btn.innerText = "🛡️ Khôi Phục Chuỗi Đồng Thuận";
+    updateBlockchainHud(`[BFT ALERT] Block #1 Tampered! PrevHash mismatch at Block #2! Chain rejected!`, true);
+    if (btn) btn.innerHTML = "🛡️ Khôi Phục Đồng Thuận";
 
     alert(
       "[CẢNH BÁO BẢO MẬT: TAMPER DETECTED!]\n\n" +
@@ -481,15 +783,147 @@ async function toggleTamperBlockchain() {
       "=> Toàn bộ chuỗi khối bị đứt gãy. Các Node khác trong mạng P2P lập tức TỪ CHỐI khối giả mạo này!"
     );
   } else {
-    // Khôi phục đồng thuận
+    playSound('restore');
     isChainTampered = false;
     await initBlockchain();
-    if (btn) btn.innerText = "💥 Tấn Công Sửa Khối Cũ";
+    updateBlockchainHud(`[CONSENSUS RESTORED] Canonical chain synchronized across 7 peers.`);
+    if (btn) btn.innerHTML = "💥 Tấn Công Sửa Khối";
   }
 }
 
-// Accordion hướng dẫn học
+
+// ============================================================================
+// 6. BLOCK INSPECTOR MODAL (MỔ XẺ MẬT MÃ SHA-256)
+// ============================================================================
+let inspectedBlockIdx = 0;
+
+function openBlockInspector(index) {
+  inspectedBlockIdx = index;
+  const block = blockchain[index];
+  if (!block) return;
+
+  playSound('modal_open');
+  const modal = document.getElementById('blockInspectorModal');
+  if (!modal) return;
+
+  document.getElementById('inspectIndex').innerText = `#${block.index}`;
+  document.getElementById('inspectTimestamp').innerText = block.timestamp || '2026-01-01T00:00:00Z';
+  document.getElementById('inspectPrevHash').innerText = block.prevFullHash || block.prevHash || '0000000000000000';
+  document.getElementById('inspectNonce').innerText = block.nonce !== undefined ? block.nonce : '48201';
+
+  const dataInput = document.getElementById('inspectDataInput');
+  if (dataInput) {
+    dataInput.value = block.data;
+  }
+
+  updateLiveHashDisplay();
+  modal.style.display = 'flex';
+}
+
+function closeBlockInspector() {
+  playSound('modal_close');
+  const modal = document.getElementById('blockInspectorModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function onInspectDataChange() {
+  playSound('hover');
+  await updateLiveHashDisplay();
+}
+
+async function updateLiveHashDisplay() {
+  const block = blockchain[inspectedBlockIdx];
+  if (!block) return;
+
+  const dataInput = document.getElementById('inspectDataInput');
+  const hashBox = document.getElementById('inspectHashBox');
+  const hashValEl = document.getElementById('inspectHashVal');
+  const statusEl = document.getElementById('inspectHashStatus');
+
+  const currentData = dataInput ? dataInput.value : block.data;
+  const payload = `${block.index}|${block.timestamp}|${currentData}|${block.prevFullHash || block.prevHash}|${block.nonce}`;
+  const computedHash = await sha256(payload);
+
+  if (hashValEl) hashValEl.innerText = computedHash;
+
+  const isModified = currentData !== block.data;
+  if (isModified) {
+    if (hashBox) hashBox.classList.add('tampered');
+    if (statusEl) {
+      statusEl.innerHTML = `<span style="color: #ef4444;">❌ HASH BỊ THAY ĐỔI HOÀN TOÀN! Khối tiếp theo sẽ từ chối vì không khớp PreviousHash.</span>`;
+    }
+  } else {
+    if (hashBox) hashBox.classList.remove('tampered');
+    if (statusEl) {
+      statusEl.innerHTML = `<span style="color: #34d399;">✓ Hash khớp hoàn hảo với bản ghi sổ cái phân tán.</span>`;
+    }
+  }
+}
+
+
+// ============================================================================
+// 7. RACE SIMULATION MODE (CHẠY ĐỒNG THỜI CẢ 2 BÊN)
+// ============================================================================
+let isRacing = false;
+
+function startRaceSimulation() {
+  if (isRacing) return;
+  isRacing = true;
+  playSound('click');
+
+  const banner = document.getElementById('raceInsightBanner');
+  if (banner) banner.style.display = 'none';
+
+  // 1. Bên SQL chạy ngay tức thì
+  executeSqlQuery();
+
+  // 2. Bên Blockchain phát sóng gossip
+  addBlockchainTransaction();
+
+  // 3. Sau khi đồng thuận P2P hoàn tất, hiện bảng tổng kết so sánh
+  setTimeout(() => {
+    if (banner) {
+      banner.style.display = 'block';
+      playSound('block_mined');
+    }
+    isRacing = false;
+  }, 1400);
+}
+
+
+// ============================================================================
+// 8. HOVER SYNC VÀ ACCORDION
+// ============================================================================
+function setupCodeHoverSync() {
+  const sqlLines = document.querySelectorAll('.hover-sql');
+  const blockchainLines = document.querySelectorAll('.hover-blockchain');
+  const sqlPanel = document.querySelector('.card-panel.cyan-theme');
+  const blockchainPanel = document.querySelector('.card-panel.amber-theme');
+
+  sqlLines.forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      playSound('hover');
+      sqlPanel?.classList.add('active-focus');
+    });
+    el.addEventListener('mouseleave', () => sqlPanel?.classList.remove('active-focus'));
+  });
+
+  blockchainLines.forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      playSound('hover');
+      blockchainPanel?.classList.add('active-focus');
+    });
+    el.addEventListener('mouseleave', () => blockchainPanel?.classList.remove('active-focus'));
+  });
+
+  // Hover sounds cho tất cả các nút
+  document.querySelectorAll('.btn, .btn-icon, .btn-race').forEach(btn => {
+    btn.addEventListener('mouseenter', () => playSound('hover'));
+  });
+}
+
 function toggleStudyGuide() {
+  playSound('click');
   const content = document.getElementById('studyGuideContent');
   const icon = document.getElementById('guideToggleIcon');
   if (!content) return;
@@ -502,6 +936,7 @@ function toggleStudyGuide() {
   }
 }
 
+
 // ============================================================================
 // KHỞI ĐỘNG HỆ THỐNG
 // ============================================================================
@@ -510,6 +945,7 @@ window.addEventListener('load', async () => {
   initP2PNetwork();
   renderSqlTable();
   await initBlockchain();
+  setupCodeHoverSync();
   renderLoop();
 
   window.addEventListener('resize', () => {
