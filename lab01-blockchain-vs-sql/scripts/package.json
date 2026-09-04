@@ -1,0 +1,13 @@
+{
+  "name": "lab01-blockchain-vs-sql",
+  "version": "1.0.0",
+  "description": "Lab 01: Đối chiếu Blockchain (Solidity) với SQL và Mạng máy tính dành cho sinh viên năm 4",
+  "main": "scripts/simulate.js",
+  "scripts": {
+    "simulate": "node scripts/simulate.js",
+    "serve": "npx serve demo"
+  },
+  "keywords": ["blockchain", "solidity", "sql", "p2p-network", "educational"],
+  "author": "Antigravity Pair Programmer",
+  "license": "MIT"
+}
