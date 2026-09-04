@@ -436,6 +436,23 @@ async function addBlockchainTransaction() {
       playSound('gossip_ripple', hop);
     }
 
+    // Dynamic 4-Phase Cryptographic Execution HUD
+    if (progress < 0.22) {
+      updateBlockchainHud(`[PHASE 1/4: CRYPTO SIGN] Alice signs tx payload with ECDSA (secp256k1)`);
+    } else if (progress < 0.58) {
+      updateBlockchainHud(`[PHASE 2/4: P2P GOSSIP] Concentric wave diffusing across 14,574 DevP2P nodes`);
+    } else if (progress < 0.85) {
+      updateBlockchainHud(`[PHASE 3/4: BFT QUORUM] PoS Validators verifying nonce & balance integrity`);
+    } else {
+      updateBlockchainHud(`[PHASE 4/4: SHA-256 MINING] Sealing merkle transactions into immutable block`);
+    }
+
+    const solMetric = document.getElementById('solidityMetricCounter');
+    if (solMetric) {
+      const elapsedMs = Math.min(1420, Math.round(elapsed));
+      solMetric.innerHTML = `<span class="done-tag amber">VERIFYING</span> ${elapsedMs} ms`;
+    }
+
     p2pNodes.forEach(node => {
       if (node.isOffline) return;
       const d = Math.hypot(node.x - alice.x, node.y - alice.y);
@@ -735,12 +752,12 @@ function resizeCanvases() {
   if (sqlCanvas && sqlCanvas.parentElement) {
     const r = sqlCanvas.parentElement.getBoundingClientRect();
     sqlCanvas.width = r.width;
-    sqlCanvas.height = 460;
+    sqlCanvas.height = r.height || 400;
   }
   if (p2pCanvas && p2pCanvas.parentElement) {
     const r = p2pCanvas.parentElement.getBoundingClientRect();
     p2pCanvas.width = r.width;
-    p2pCanvas.height = 460;
+    p2pCanvas.height = r.height || 400;
   }
   if (sqlCanvas) {
     initNetworkTopologies(sqlCanvas.width, sqlCanvas.height);
@@ -1295,21 +1312,39 @@ function renderBlockCards() {
   });
 }
 
-function updateResultsTable(arch, latency, nodes, integrity) {
+function updateResultsTable(arch, latency, nodes, integrity, statusClass = null) {
   if (arch === 'sql') {
     const lat = document.getElementById('tableResLatencySql');
     const nod = document.getElementById('tableResNodesSql');
     const int = document.getElementById('tableResIntegritySql');
     if (lat) lat.innerText = latency;
     if (nod) nod.innerText = nodes;
-    if (int) int.innerText = integrity;
+    if (int) {
+      int.innerText = integrity;
+      if (statusClass) {
+        int.className = `result-val status-badge ${statusClass} col-cell col-integrity`;
+      } else if (integrity.includes('TAMPERED') || integrity.includes('HALTED')) {
+        int.className = 'result-val status-badge red flash-tamper col-cell col-integrity';
+      } else {
+        int.className = 'result-val status-badge red col-cell col-integrity';
+      }
+    }
   } else {
     const lat = document.getElementById('tableResLatencyChain');
     const nod = document.getElementById('tableResNodesChain');
     const int = document.getElementById('tableResIntegrityChain');
     if (lat) lat.innerText = latency;
     if (nod) nod.innerText = nodes;
-    if (int) int.innerText = integrity;
+    if (int) {
+      int.innerText = integrity;
+      if (statusClass) {
+        int.className = `result-val status-badge ${statusClass} col-cell col-integrity`;
+      } else if (integrity.includes('INVALID') || integrity.includes('REJECTED')) {
+        int.className = 'result-val status-badge red flash-tamper col-cell col-integrity';
+      } else {
+        int.className = 'result-val status-badge green col-cell col-integrity';
+      }
+    }
   }
 }
 

@@ -11,21 +11,31 @@
 <div class="container">
 
   <!-- ====================================================================
-       1. HEADER HERO (MINIMALIST & CYBERPUNK - MATCHING REFERENCE)
+       1. TOP SYSTEM NAVIGATION & DIAGNOSTIC DOCK
        ==================================================================== -->
-  <header class="header-hero">
+  <nav class="top-nav-bar">
+    <div class="top-nav-brand">
+      <span class="pulse-status-dot"></span>
+      <span class="brand-title">SYSTEM BENCHMARK DECK</span>
+      <span class="brand-tag">LIVE DUAL RUNTIME</span>
+    </div>
     <div class="top-bar-controls">
-      <button class="btn-icon" onclick="openPacketInspector()">
+      <button class="btn-icon" onclick="openPacketInspector()" title="Inspect raw TCP & P2P network packets">
         📦 Packet Inspector
       </button>
-      <button class="btn-icon" onclick="openBlockInspector(1)">
+      <button class="btn-icon" onclick="openBlockInspector(1)" title="Inspect live SHA-256 Merkle block data">
         🔍 SHA-256 Inspector
       </button>
-      <button class="btn-icon" id="soundToggleBtn" onclick="toggleSound()">
+      <button class="btn-icon" id="soundToggleBtn" onclick="toggleSound()" title="Toggle procedural sound synthesis">
         🔊 SFX: ON
       </button>
     </div>
+  </nav>
 
+  <!-- ====================================================================
+       2. HEADER HERO (MINIMALIST & CYBERPUNK)
+       ==================================================================== -->
+  <header class="header-hero">
     <h1>Neither one forgets a transaction</h1>
     <div class="header-meta">
       <span>SQL CLIENT-SERVER</span>
@@ -36,33 +46,47 @@
   </header>
 
   <!-- ====================================================================
-       2. ACTION TOOLBAR (COMPREHENSIVE EXPERIMENT & CONTROL SUITE)
+       3. ACTION COCKPIT (SEGMENTED EXPERIMENT & CONTROL SUITE)
        ==================================================================== -->
-  <section class="action-toolbar">
-    <button class="btn-action primary" onclick="startRaceSimulation()">
-      ⚡ Race Comparison
-    </button>
-    <button class="btn-action cyan" onclick="executeSqlQuery()">
-      ▶ SQL Direct Commit
-    </button>
-    <button class="btn-action amber" onclick="addBlockchainTransaction()">
-      ⚡ P2P Gossip Broadcast
-    </button>
-    <button class="btn-action ghost" id="btnCrashSqlServer" onclick="toggleSqlServerCrash()">
-      🔌 Crash Server (SPOF)
-    </button>
-    <button class="btn-action ghost" id="btnPartitionP2P" onclick="toggleP2PPartition()">
-      📶 Drop 30% Nodes (BFT)
-    </button>
-    <button class="btn-action danger" onclick="dbaTamperSql()">
-      ⚠️ DBA Tamper (SQL)
-    </button>
-    <button class="btn-action danger" id="btnTamperBlockchain" onclick="toggleTamperBlockchain()">
-      💥 Tamper Block (Chain)
-    </button>
-    <button class="btn-action ghost" onclick="resetDemo()">
-      🔄 Reset All
-    </button>
+  <section class="action-cockpit">
+    <!-- Pod 1: Execution Runners -->
+    <div class="cockpit-pod">
+      <span class="pod-label">EXECUTION</span>
+      <button class="btn-action primary" onclick="startRaceSimulation()" title="Run SQL and Blockchain simultaneously to compare latency">
+        ⚡ Race Comparison
+      </button>
+      <button class="btn-action cyan" onclick="executeSqlQuery()" title="Alice directly writes to central database">
+        ▶ SQL Commit
+      </button>
+      <button class="btn-action amber" onclick="addBlockchainTransaction()" title="Alice broadcasts signed transaction across P2P gossip mesh">
+        ⚡ P2P Gossip
+      </button>
+    </div>
+
+    <!-- Pod 2: Network Resilience Faults -->
+    <div class="cockpit-pod">
+      <span class="pod-label">NETWORK FAULT</span>
+      <button class="btn-action ghost" id="btnCrashSqlServer" onclick="toggleSqlServerCrash()" title="Demonstrate Single Point of Failure (SPOF)">
+        🔌 Crash Server (SPOF)
+      </button>
+      <button class="btn-action ghost" id="btnPartitionP2P" onclick="toggleP2PPartition()" title="Demonstrate Byzantine Fault Tolerance (BFT)">
+        📶 Drop 30% Nodes (BFT)
+      </button>
+    </div>
+
+    <!-- Pod 3: Security & Tampering Tests -->
+    <div class="cockpit-pod">
+      <span class="pod-label">DATA SECURITY</span>
+      <button class="btn-action danger" onclick="dbaTamperSql()" title="Simulate DBA root silent in-place overwrite">
+        ⚠️ DBA Tamper (SQL)
+      </button>
+      <button class="btn-action danger" id="btnTamperBlockchain" onclick="toggleTamperBlockchain()" title="Simulate unauthorized payload edit breaking the hash chain">
+        💥 Tamper Block (Chain)
+      </button>
+      <button class="btn-action ghost reset-btn" onclick="resetDemo()" title="Reset all simulation states">
+        🔄 Reset
+      </button>
+    </div>
   </section>
 
   <!-- ====================================================================
@@ -149,23 +173,23 @@
     <div class="results-table-header">
       <span class="title">WHAT EACH ONE RETURNED</span>
       <div class="results-col-labels">
-        <span>LATENCY</span>
-        <span>PEERS CONTACTED</span>
-        <span>DATA INTEGRITY</span>
+        <span class="col-cell col-latency">LATENCY</span>
+        <span class="col-cell col-peers">PEERS CONTACTED</span>
+        <span class="col-cell col-integrity">DATA INTEGRITY</span>
       </div>
     </div>
     <div class="results-table-rows">
       <div class="result-row amber">
         <div class="result-name"><span class="pill amber">SOLIDITY</span></div>
-        <div class="result-val metric" id="tableResLatencyChain">1,420 ms</div>
-        <div class="result-val" id="tableResNodesChain">14,574</div>
-        <div class="result-val status-badge green" id="tableResIntegrityChain">IMMUTABLE (SHA-256)</div>
+        <div class="result-val metric col-cell col-latency" id="tableResLatencyChain">1,420 ms</div>
+        <div class="result-val col-cell col-peers" id="tableResNodesChain">14,574</div>
+        <div class="result-val status-badge green col-cell col-integrity" id="tableResIntegrityChain">IMMUTABLE (SHA-256)</div>
       </div>
       <div class="result-row cyan">
         <div class="result-name"><span class="pill cyan">SQL</span></div>
-        <div class="result-val metric" id="tableResLatencySql">0.82 ms</div>
-        <div class="result-val" id="tableResNodesSql">1</div>
-        <div class="result-val status-badge red" id="tableResIntegritySql">MUTABLE (Admin Overwrite)</div>
+        <div class="result-val metric col-cell col-latency" id="tableResLatencySql">0.82 ms</div>
+        <div class="result-val col-cell col-peers" id="tableResNodesSql">1</div>
+        <div class="result-val status-badge red col-cell col-integrity" id="tableResIntegritySql">MUTABLE (Admin Overwrite)</div>
       </div>
     </div>
   </section>
