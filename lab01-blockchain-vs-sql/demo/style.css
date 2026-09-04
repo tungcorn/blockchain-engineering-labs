@@ -335,15 +335,11 @@ canvas {
 }
 
 .map-pin.pin-start {
-  top: 14%;
+  top: 7%;
   left: 50%;
 }
 .map-pin.pin-goal {
-  top: 86%;
-  left: 50%;
-}
-.map-pin.pin-server {
-  top: 50%;
+  top: 92%;
   left: 50%;
 }
 
@@ -366,6 +362,14 @@ canvas {
   background: #00f0ff;
   border-radius: 4px;
   font-size: 0.6rem;
+  box-shadow: 0 0 8px #00f0ff;
+}
+
+.pin-badge.validator {
+  background: #f59e0b;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  box-shadow: 0 0 8px #f59e0b;
 }
 
 .pin-ring {

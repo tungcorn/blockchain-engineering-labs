@@ -80,27 +80,21 @@
       <div class="canvas-wrapper">
         <canvas id="sqlNetworkCanvas"></canvas>
         
-        <!-- Pin Điểm Xuất Phát: Times Square (Alice) -->
+        <!-- Pin Client Alice -->
         <div class="map-pin pin-start">
           <span class="pin-badge">A</span>
-          <span class="pin-text">Times Square • Alice (0x71c)</span>
+          <span class="pin-text">Client Alice • 192.168.1.15</span>
         </div>
 
-        <!-- Pin Máy Chủ Trung Tâm DB -->
-        <div class="map-pin pin-server" id="sqlServerPin">
-          <span class="pin-badge server">DB</span>
-          <span class="pin-text">CENTRAL DB (Port 5432)</span>
-        </div>
-
-        <!-- Pin Điểm Đến: Coney Island (Bob) -->
+        <!-- Pin Client Bob -->
         <div class="map-pin pin-goal">
           <span class="pin-ring"></span>
-          <span class="pin-text">Coney Island • Bob (0x94f)</span>
+          <span class="pin-text">Client Bob • 192.168.1.20</span>
         </div>
 
         <!-- Dòng chú thích dưới đáy canvas như ảnh -->
         <div class="canvas-footer-label">
-          commits to one direction
+          commits to central database
         </div>
       </div>
 
@@ -123,21 +117,21 @@
       <div class="canvas-wrapper">
         <canvas id="p2pNetworkCanvas"></canvas>
 
-        <!-- Pin Điểm Xuất Phát: Times Square (Alice) -->
+        <!-- Pin Node Alice -->
         <div class="map-pin pin-start">
           <span class="pin-badge">A</span>
-          <span class="pin-text">Times Square • Alice (0x71c)</span>
+          <span class="pin-text">Node Alice • Peer 0x71c</span>
         </div>
 
-        <!-- Pin Điểm Đến: Coney Island (Bob) -->
+        <!-- Pin Node Bob -->
         <div class="map-pin pin-goal">
           <span class="pin-ring"></span>
-          <span class="pin-text">Coney Island • Bob (0x94f)</span>
+          <span class="pin-text">Node Bob • Peer 0x94f</span>
         </div>
 
         <!-- Dòng chú thích dưới đáy canvas như ảnh -->
         <div class="canvas-footer-label">
-          spreads in rings
+          spreads in gossip rings
         </div>
       </div>
 
