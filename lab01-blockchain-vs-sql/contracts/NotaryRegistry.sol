@@ -2,33 +2,32 @@
 pragma solidity ^0.8.20;
 
 /**
- * @title NotaryRegistry - Chứng thực tài liệu (Proof of Existence)
- * @notice Minh họa ứng dụng điển hình của Blockchain trong bảo toàn tính toàn vẹn dữ liệu
+ * @title NotaryRegistry - Cryptographic Proof of Existence & Timestamping
+ * @notice Demonstrates document integrity notarization without centralized third parties
  * 
- * VẤN ĐỀ TRONG SQL / MẠNG TRUYỀN THỐNG:
- * - Khi lưu trữ mã băm file trên cơ sở dữ liệu tập trung (MySQL/Postgres),
- *   quản trị viên (DBA) hoặc hacker xâm nhập có thể chạy lệnh:
+ * CENTRALIZED SQL DATABASE PROBLEM:
+ * - When storing document hashes in centralized databases (PostgreSQL/MySQL),
+ *   a privileged superuser (DBA) or an attacker can execute:
  *   `UPDATE documents SET file_hash = '...' WHERE id = 1;`
- *   để tráo đổi nội dung tài liệu mà không ai phát hiện được.
+ *   silently forging historical document records.
  * 
- * GIẢI PHÁP BLOCKCHAIN:
- * - Lưu `bytes32 fileHash` vào chuỗi khối.
- * - Mã băm được gắn chặt với `block.timestamp` và chữ ký số `msg.sender`.
- * - Tính chất chuỗi khối (mỗi block băm dữ liệu của block trước) đảm bảo
- *   không ai có thể thay đổi thời gian hoặc mã băm đã được xác nhận.
+ * DECENTRALIZED BLOCKCHAIN SOLUTION:
+ * - Stores immutable `bytes32 docHash` directly in contract state.
+ * - Bound permanently to `block.timestamp` and cryptographic signature `msg.sender`.
+ * - Tamper-proof: Preceding blocks cannot be modified without invalidating downstream hashes.
  */
 contract NotaryRegistry {
     struct DocumentRecord {
-        bytes32 docHash;       // Mã băm SHA-256 hoặc Keccak-256 của tài liệu (32 bytes)
-        address notarizedBy;   // Người sở hữu / người đăng ký
-        uint256 timestamp;     // Thời điểm khối được đào
-        string metadata;       // Mô tả ngắn hoặc tên văn bản
+        bytes32 docHash;       // SHA-256 or Keccak-256 digest (32 bytes)
+        address notarizedBy;   // Registrant wallet address
+        uint256 timestamp;     // Block timestamp when mined
+        string metadata;       // Descriptive document identifier or title
     }
 
-    // Mapping từ mã băm của tài liệu sang bản ghi chi tiết
+    // Mapping from document hash to notarization record
     mapping(bytes32 => DocumentRecord) public records;
 
-    // Sự kiện khi tài liệu mới được đóng dấu thời gian
+    // Emitted when a document hash is notarized
     event DocumentNotarized(
         bytes32 indexed docHash,
         address indexed notarizedBy,
@@ -37,9 +36,9 @@ contract NotaryRegistry {
     );
 
     /**
-     * @dev Đăng ký chứng thực một mã băm tài liệu mới
-     * @param _docHash Mã băm 32 bytes của tài liệu (tính ở client/máy người dùng)
-     * @param _metadata Tên tài liệu hoặc mã số sinh viên / hợp đồng
+     * @dev Notarize a new document hash
+     * @param _docHash 32-byte cryptographic hash of document payload
+     * @param _metadata Metadata label or identifier
      */
     function notarize(bytes32 _docHash, string calldata _metadata) external {
         require(_docHash != bytes32(0), "Invalid document hash");
@@ -56,7 +55,7 @@ contract NotaryRegistry {
     }
 
     /**
-     * @dev Kiểm tra xác thực xem một mã băm đã từng tồn tại và ai là người chứng thực
+     * @dev Verify whether a document hash has been notarized and retrieve its record
      */
     function verify(bytes32 _docHash) external view returns (
         bool exists,

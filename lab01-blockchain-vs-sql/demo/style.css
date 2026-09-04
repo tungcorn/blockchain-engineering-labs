@@ -59,7 +59,7 @@ body {
 }
 
 /* ==========================================================================
-   1. HEADER HERO (CHÍNH XÁC THEO PHONG CÁCH ẢNH GỐC)
+   1. HEADER HERO (MINIMALIST HERO - MATCHING REFERENCE STYLE)
    ========================================================================== */
 .header-hero {
   text-align: center;
@@ -136,7 +136,7 @@ body {
 }
 
 /* ==========================================================================
-   ACTION TOOLBAR (THANH NÚT ĐIỀU KHIỂN NỔI HIỆN ĐẠI)
+   ACTION TOOLBAR (FLOATING HI-TECH CONTROL DECK)
    ========================================================================== */
 .action-toolbar {
   display: flex;
@@ -214,7 +214,7 @@ body {
 }
 
 /* ==========================================================================
-   2. COMPARISON GRID - TALL MAP CARDS (GIỐNG ẢNH 100%)
+   2. COMPARISON GRID - TALL MAP CARDS
    ========================================================================== */
 .comparison-grid {
   display: grid;
@@ -299,7 +299,7 @@ body {
 }
 
 /* ==========================================================================
-   TALL CANVAS MAP WRAPPER (CHIỀU CAO 460PX GIỐNG ẢNH MẪU)
+   TALL CANVAS MAP WRAPPER (460PX HEIGHT)
    ========================================================================== */
 .canvas-wrapper {
   background: var(--bg-card-inner);
@@ -425,7 +425,7 @@ canvas {
 .network-hud.alert .hud-log { color: #f87171; font-weight: 700; }
 
 /* ==========================================================================
-   3. "WHAT EACH ONE RETURNED" BẢNG ĐỐI CHIẾU (CHÍNH XÁC THEO ẢNH)
+   3. "WHAT EACH ONE RETURNED" COMPARISON MATRIX (EXACT REFERENCE STYLE)
    ========================================================================== */
 .results-table-card {
   background: var(--bg-card);
@@ -529,7 +529,7 @@ canvas {
 }
 
 /* ==========================================================================
-   4. PUNCHLINE BANNER (HỘP VIỀN BO TRÒN GIỐNG ẢNH GỐC)
+   4. PUNCHLINE BANNER (ROUNDED PILL BOX)
    ========================================================================== */
 .punchline-pill-box {
   background: #0a0e16;
@@ -757,3 +757,218 @@ canvas {
 .toast-footer { display: flex; justify-content: flex-end; margin-top: 2px; }
 .toast-action-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #f8fafc; font-family: var(--font-mono); font-size: 0.68rem; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
 .toast-progress-bar { position: absolute; bottom: 0; left: 0; height: 2px; background: rgba(255, 255, 255, 0.2); width: 100%; }
+
+/* ==========================================================================
+   DIAGNOSTIC MODALS (BLOCK & PACKET INSPECTORS)
+   ========================================================================== */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(4, 7, 12, 0.85);
+  backdrop-filter: blur(12px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.modal-window {
+  background: #0c111a;
+  border: 1px solid #243247;
+  border-top: 2px solid var(--amber-neon);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalPop 0.25s ease;
+}
+
+.packet-modal-window {
+  max-width: 860px;
+  border-top: 2px solid var(--cyan-neon);
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid #1a2436;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.modal-close-btn:hover { color: #ffffff; }
+
+.modal-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  overflow-y: auto;
+  max-height: calc(90vh - 65px);
+}
+
+.formula-box {
+  background: #06090f;
+  border: 1px solid #162030;
+  border-radius: 6px;
+  padding: 10px 12px;
+  line-height: 1.45;
+  color: #94a3b8;
+}
+.formula-box code { color: var(--amber-bright); font-size: 0.76rem; }
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field-label { font-size: 0.7rem; color: var(--text-dim); font-weight: 600; }
+.field-value-static {
+  background: #080c14;
+  border: 1px solid #161f2e;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #cbd5e1;
+  word-break: break-all;
+}
+.field-input-live {
+  background: #06090f;
+  border: 1px solid var(--amber-dim);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  outline: none;
+}
+.field-input-live:focus { border-color: var(--amber-neon); }
+
+.hash-output-box {
+  background: #070c14;
+  border: 1px solid #1c2a3f;
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hash-output-box.tampered {
+  border-color: var(--red-neon);
+  background: var(--red-bg);
+}
+.hash-label { font-size: 0.68rem; color: var(--text-dim); }
+.hash-value-live {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--amber-neon);
+  word-break: break-all;
+}
+.hash-output-box.tampered .hash-value-live { color: var(--red-neon); }
+
+/* Wireshark Packet Grid */
+.packet-comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 768px) {
+  .packet-comparison-grid { grid-template-columns: 1fr; }
+}
+.packet-col {
+  background: #080c14;
+  border: 1px solid #162030;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.packet-col.packet-sql { border-top: 2px solid var(--cyan-neon); }
+.packet-col.packet-p2p { border-top: 2px solid var(--amber-neon); }
+.packet-col-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-bottom: 1px solid #162030;
+  padding-bottom: 4px;
+}
+.packet-col-header.cyan { color: var(--cyan-neon); }
+.packet-col-header.amber { color: var(--amber-neon); }
+.protocol-badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #94a3b8;
+}
+.packet-meta {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: #04070c;
+  padding: 6px 8px;
+  border-radius: 4px;
+}
+.payload-tag {
+  font-size: 0.66rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  display: block;
+}
+.payload-tag.cyan { color: var(--cyan-bright); }
+.payload-tag.amber { color: var(--amber-bright); }
+.payload-code {
+  background: #030509;
+  border: 1px solid #141f2e;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 0.7rem;
+  color: #f1f5f9;
+  overflow-x: auto;
+}
+.packet-analysis {
+  font-size: 0.68rem;
+  padding: 8px;
+  border-radius: 4px;
+}
+.packet-analysis.cyan { background: rgba(0, 240, 255, 0.04); color: #a5f3fc; border: 1px solid rgba(0, 240, 255, 0.15); }
+.packet-analysis.amber { background: rgba(245, 158, 11, 0.04); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.15); }
+.packet-analysis ul { padding-left: 14px; }

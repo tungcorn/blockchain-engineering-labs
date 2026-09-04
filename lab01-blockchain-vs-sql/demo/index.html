@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,10 +11,16 @@
 <div class="container">
 
   <!-- ====================================================================
-       1. HEADER HERO (TỐI GIẢN, ĐẲNG CẤP THEO ẢNH GỐC)
+       1. HEADER HERO (MINIMALIST & CYBERPUNK - MATCHING REFERENCE)
        ==================================================================== -->
   <header class="header-hero">
     <div class="top-bar-controls">
+      <button class="btn-icon" onclick="openPacketInspector()">
+        📦 Packet Inspector
+      </button>
+      <button class="btn-icon" onclick="openBlockInspector(1)">
+        🔍 SHA-256 Inspector
+      </button>
       <button class="btn-icon" id="soundToggleBtn" onclick="toggleSound()">
         🔊 SFX: ON
       </button>
@@ -30,32 +36,41 @@
   </header>
 
   <!-- ====================================================================
-       2. ACTION TOOLBAR (4 KỊCH BẢN THỬ NGHIỆM RÕ RÀNG & TRỰC QUAN)
+       2. ACTION TOOLBAR (COMPREHENSIVE EXPERIMENT & CONTROL SUITE)
        ==================================================================== -->
   <section class="action-toolbar">
     <button class="btn-action primary" onclick="startRaceSimulation()">
-      ⚡ Chạy Đua (Race Comparison)
+      ⚡ Race Comparison
     </button>
-    <button class="btn-action cyan" id="btnCrashSqlServer" onclick="toggleSqlServerCrash()">
-      🔌 Sập Server (SPOF Test)
+    <button class="btn-action cyan" onclick="executeSqlQuery()">
+      ▶ SQL Direct Commit
     </button>
-    <button class="btn-action amber" id="btnPartitionP2P" onclick="toggleP2PPartition()">
-      📶 Rớt 30% Node (BFT Test)
+    <button class="btn-action amber" onclick="addBlockchainTransaction()">
+      ⚡ P2P Gossip Broadcast
     </button>
-    <button class="btn-action danger" id="btnTamper" onclick="toggleTamperTest()">
-      ⚠️ Thử Sửa Trộm (Tamper Test)
+    <button class="btn-action ghost" id="btnCrashSqlServer" onclick="toggleSqlServerCrash()">
+      🔌 Crash Server (SPOF)
+    </button>
+    <button class="btn-action ghost" id="btnPartitionP2P" onclick="toggleP2PPartition()">
+      📶 Drop 30% Nodes (BFT)
+    </button>
+    <button class="btn-action danger" onclick="dbaTamperSql()">
+      ⚠️ DBA Tamper (SQL)
+    </button>
+    <button class="btn-action danger" id="btnTamperBlockchain" onclick="toggleTamperBlockchain()">
+      💥 Tamper Block (Chain)
     </button>
     <button class="btn-action ghost" onclick="resetDemo()">
-      🔄 Đặt Lại (Reset)
+      🔄 Reset All
     </button>
   </section>
 
   <!-- ====================================================================
-       3. DENSE NETWORK VISUALIZERS (HAI CỘT TALL CANVAS CHÍNH DIỆN)
+       3. DENSE NETWORK VISUALIZERS (TWO TALL DUAL CANVAS COLUMNS)
        ==================================================================== -->
   <main class="comparison-grid">
 
-    <!-- CỘT BÊN TRÁI: SQL (CYAN ACCENT - COMMITS TO CENTRAL SERVER) -->
+    <!-- LEFT COLUMN: SQL (CYAN ACCENT - COMMITS TO CENTRAL SERVER) -->
     <section class="card-panel cyan-theme">
       <div class="card-header">
         <span class="badge-tag cyan">SQL</span>
@@ -90,7 +105,7 @@
       </div>
     </section>
 
-    <!-- CỘT BÊN PHẢI: SOLIDITY BLOCKCHAIN (AMBER ACCENT - SPREADS IN RINGS) -->
+    <!-- RIGHT COLUMN: SOLIDITY BLOCKCHAIN (AMBER ACCENT - SPREADS IN RINGS) -->
     <section class="card-panel amber-theme">
       <div class="card-header">
         <span class="badge-tag amber">SOLIDITY</span>
@@ -128,7 +143,7 @@
   </main>
 
   <!-- ====================================================================
-       4. "WHAT EACH ONE RETURNED" BẢNG ĐỐI CHIẾU (CHUẨN THEO ẢNH)
+       4. "WHAT EACH ONE RETURNED" COMPARISON MATRIX (EXACT REFERENCE STYLE)
        ==================================================================== -->
   <section class="results-table-card">
     <div class="results-table-header">
@@ -156,7 +171,7 @@
   </section>
 
   <!-- ====================================================================
-       5. PUNCHLINE BANNER (HỘP VIỀN BO TRÒN GIỐNG ẢNH GỐC)
+       5. PUNCHLINE BANNER (ROUNDED PILL BOX)
        ==================================================================== -->
   <section class="punchline-pill-box">
     <p class="punchline-main-text">
@@ -164,21 +179,21 @@
       <span class="hl-amber">Blockchain chains</span> every past transaction.
     </p>
     <p class="punchline-sub-text">
-      Mô hình ghi đè ô nhớ tập trung (Client-Server TCP) đối chiếu với sổ cái phân tán xâu chuỗi bằng hàm băm mật mã (P2P Gossip).
+      Centralized in-place memory mutation (Client-Server TCP) vs append-only cryptographic ledger (P2P Gossip Mesh).
     </p>
   </section>
 
   <!-- ====================================================================
-       6. LIVE STORAGE STATE: BẢNG SQL VS SỔ CÁI KHỐI (TRỰC QUAN SONG SONG)
+       6. LIVE STORAGE STATE: SQL TABLE VS BLOCKCHAIN LEDGER
        ==================================================================== -->
   <section class="storage-state-section">
     <div class="storage-split-grid">
       
-      <!-- Cột Trái: SQL Live Table -->
+      <!-- Left Column: SQL Live Table -->
       <div class="storage-card cyan">
         <div class="storage-card-header">
-          <span class="title cyan">BẢNG DỮ LIỆU SQL (MUTABLE IN-PLACE)</span>
-          <span class="badge cyan">GHI ĐÈ Ô NHỚ</span>
+          <span class="title cyan">SQL DATABASE TABLE (MUTABLE IN-PLACE)</span>
+          <span class="badge cyan">IN-PLACE OVERWRITE</span>
         </div>
         <table class="db-table">
           <thead>
@@ -189,7 +204,7 @@
             </tr>
           </thead>
           <tbody id="sqlTableBody">
-            <!-- Render động -->
+            <!-- Dynamic Render -->
           </tbody>
         </table>
         <div class="code-snippet-box">
@@ -197,14 +212,14 @@
         </div>
       </div>
 
-      <!-- Cột Phải: Blockchain Blocks -->
+      <!-- Right Column: Blockchain Blocks -->
       <div class="storage-card amber">
         <div class="storage-card-header">
-          <span class="title amber">SỔ CÁI KHỐI SOLIDITY (APPEND-ONLY IMMUTABLE)</span>
-          <span class="badge amber">NỐI CHUỖI MẬT MÃ</span>
+          <span class="title amber">SOLIDITY BLOCKCHAIN LEDGER (APPEND-ONLY IMMUTABLE)</span>
+          <span class="badge amber">CRYPTOGRAPHIC CHAINING</span>
         </div>
         <div class="blockchain-blocks" id="blockchainBlocks">
-          <!-- Render động -->
+          <!-- Dynamic Render -->
         </div>
         <div class="code-snippet-box">
           <code>balances[msg.sender] -= 50; <span class="kw-purple">emit</span> <span class="kw-blue">Transfer</span>(msg.sender, to, 50);</code>
@@ -214,6 +229,138 @@
     </div>
   </section>
 
+</div>
+
+<!-- ====================================================================
+     7. BLOCK CRYPTOGRAPHIC INSPECTOR MODAL (SHA-256 AVALANCHE EFFECT)
+     ==================================================================== -->
+<div class="modal-backdrop" id="blockInspectorModal" onclick="if(event.target===this) closeBlockInspector()">
+  <div class="modal-window">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span>🔍 CRYPTOGRAPHIC BLOCK INSPECTOR:</span>
+        <span id="inspectIndex" style="color: #f59e0b;">#1</span>
+      </div>
+      <button class="modal-close-btn" onclick="closeBlockInspector()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="formula-box">
+        <strong>BLOCKCHAIN CRYPTOGRAPHIC FORMULA:</strong><br>
+        <code>Current_Hash = SHA256( Index + Timestamp + Data + Previous_Hash + Nonce )</code><br>
+        <span style="font-size: 0.7rem; color: #64748b;">Changing even a single character in Data completely changes the resulting hash (Avalanche Effect).</span>
+      </div>
+
+      <div class="field-group">
+        <span class="field-label">Timestamp:</span>
+        <div class="field-value-static" id="inspectTimestamp">2026-01-01T00:00:00Z</div>
+      </div>
+
+      <div class="field-group">
+        <span class="field-label">Previous Block Hash:</span>
+        <div class="field-value-static" id="inspectPrevHash" style="color: #38bdf8;">0000000000000000</div>
+      </div>
+
+      <div class="field-group">
+        <span class="field-label">Nonce (Proof-of-Work):</span>
+        <div class="field-value-static" id="inspectNonce">48201</div>
+      </div>
+
+      <div class="field-group">
+        <span class="field-label" style="color: #f59e0b;">✍️ Transaction Data (Type to watch real-time hash cascade):</span>
+        <input type="text" class="field-input-live" id="inspectDataInput" oninput="onInspectDataChange()">
+      </div>
+
+      <div class="hash-output-box" id="inspectHashBox">
+        <span class="hash-label">REAL-TIME COMPUTED SHA-256 HASH:</span>
+        <div class="hash-value-live" id="inspectHashVal">calculating...</div>
+        <div id="inspectHashStatus" style="font-size: 0.72rem; margin-top: 4px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================================
+     8. NETWORK PACKET INSPECTOR MODAL (TCP VS DEVP2P WIRESHARK FRAME)
+     ==================================================================== -->
+<div class="modal-backdrop" id="packetInspectorModal" onclick="if(event.target===this) closePacketInspector()">
+  <div class="modal-window packet-modal-window">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span>📦 NETWORK PACKET INSPECTOR:</span>
+        <span style="color: #38bdf8;">TCP STREAM VS DEVP2P GOSSIP</span>
+      </div>
+      <button class="modal-close-btn" onclick="closePacketInspector()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="packet-comparison-grid">
+
+        <!-- Left Column: TCP SQL -->
+        <div class="packet-col packet-sql">
+          <div class="packet-col-header cyan">
+            <span>🌐 TCP PORT 5432 (PostgreSQL / MySQL)</span>
+            <span class="protocol-badge">Client - Server</span>
+          </div>
+          <div class="packet-meta">
+            <div><strong>Frame:</strong> Ethernet II, Src: 00:1a:2b:3c:4d:5e, Dst: 00:0c:29:ab:cd:ef</div>
+            <div><strong>Internet Protocol:</strong> Src: 192.168.1.15, Dst: 192.168.1.10 (DB Server)</div>
+            <div><strong>TCP Header:</strong> Src Port: 52341, Dst Port: 5432 [PSH, ACK]</div>
+          </div>
+          <div class="packet-payload-box">
+            <span class="payload-tag cyan">PAYLOAD DATA (PLAINTEXT QUERY):</span>
+            <pre class="payload-code"><code>UPDATE accounts 
+SET balance = balance - 50 
+WHERE id = 'Alice';
+COMMIT;</code></pre>
+          </div>
+          <div class="packet-analysis cyan">
+            <strong>⚠️ NETWORK CHARACTERISTICS:</strong>
+            <ul>
+              <li>Client streams unencrypted query directly to 1 central host.</li>
+              <li>Server executes immediately without cryptographic signatures.</li>
+              <li>If central server crashes ➜ Instant <code>ECONNREFUSED</code> socket teardown!</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Right Column: DevP2P Blockchain -->
+        <div class="packet-col packet-p2p">
+          <div class="packet-col-header amber">
+            <span>⚡ DEVP2P / RLPx PROTOCOL (Port 30303)</span>
+            <span class="protocol-badge">P2P Gossip</span>
+          </div>
+          <div class="packet-meta">
+            <div><strong>Frame:</strong> RLPx Encrypted Frame, DevP2P capability: <code>eth/68</code></div>
+            <div><strong>Peer Node ID:</strong> <code>enode://6f8a80d1...@[10.0.0.12]:30303</code></div>
+            <div><strong>Consensus Message:</strong> <code>NewPooledTransactionHashes (0x08)</code></div>
+          </div>
+          <div class="packet-payload-box">
+            <span class="payload-tag amber">SIGNED TRANSACTION PAYLOAD (JSON-RPC):</span>
+            <pre class="payload-code"><code>{
+  "nonce": "0x1b",
+  "gasPrice": "25000000000 Wei (25 Gwei)",
+  "gasLimit": "21000",
+  "to": "0x94fC147683C90... (Bob)",
+  "value": "20000000000000000000 Wei",
+  "v": "0x1c",
+  "r": "0x789b53f8a4e...",
+  "s": "0x43a129d20c5..."
+}</code></pre>
+          </div>
+          <div class="packet-analysis amber">
+            <strong>🛡️ CRYPTOGRAPHIC SECURITY:</strong>
+            <ul>
+              <li>Signed with sender's Private Key via <strong>ECDSA (secp256k1)</strong>.</li>
+              <li>Cannot be intercepted or modified in-transit without breaking signature.</li>
+              <li>Gossip wave floods peer mesh. Offline nodes do not halt propagation!</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Cyberpunk Toast Notification Container -->

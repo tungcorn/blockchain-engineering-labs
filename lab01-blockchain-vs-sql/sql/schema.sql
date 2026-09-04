@@ -1,17 +1,16 @@
 -- =========================================================================
--- ĐỐI CHIẾU HỆ THỐNG: CƠ SỞ DỮ LIỆU QUAN HỆ (SQL) VS BLOCKCHAIN SOLIDITY
--- Dành cho sinh viên năm 4 môn "Chuỗi khối và ứng dụng"
+-- ARCHITECTURAL COMPARISON: RELATIONAL DATABASE (SQL) VS SOLIDITY BLOCKCHAIN
 -- =========================================================================
 
--- 1. Bảng tài khoản (Tương đương: mapping(address => uint256) balances trong Solidity)
+-- 1. Accounts table (Corresponds to: mapping(address => uint256) balances in Solidity)
 CREATE TABLE IF NOT EXISTS accounts (
-    account_address VARCHAR(42) PRIMARY KEY, -- Địa chỉ ví (0x...)
-    balance NUMERIC(38, 0) NOT NULL DEFAULT 0, -- Số dư đơn vị Wei
+    account_address VARCHAR(42) PRIMARY KEY, -- Wallet / account address (0x...)
+    balance NUMERIC(38, 0) NOT NULL DEFAULT 0, -- Balance in Wei units
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Bảng nhật ký giao dịch (Tương đương: event Transfer(...) trong Solidity)
+-- 2. Audit logs table (Corresponds to: event Transfer(...) in Solidity)
 CREATE TABLE IF NOT EXISTS audit_logs (
     id SERIAL PRIMARY KEY,
     sender VARCHAR(42) NOT NULL,
@@ -21,23 +20,23 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     comment TEXT
 );
 
--- 3. Bảng chứng thực tài liệu (Tương đương: mapping(bytes32 => DocumentRecord) trong NotaryRegistry.sol)
+-- 3. Document notary table (Corresponds to: mapping(bytes32 => DocumentRecord) in NotaryRegistry.sol)
 CREATE TABLE IF NOT EXISTS document_notary (
-    doc_hash CHAR(66) PRIMARY KEY, -- Mã băm sha256 0x...
+    doc_hash CHAR(66) PRIMARY KEY, -- SHA-256 hash digest (0x...)
     notarized_by VARCHAR(42) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     metadata TEXT
 );
 
 -- -------------------------------------------------------------------------
--- PHÂN TÍCH ĐỐI CHIẾU:
--- 1. TÍNH BẤT BIẾN (IMMUTABILITY):
---    - Trong SQL: Một người có quyền Superuser / DBA có thể thực thi:
+-- ARCHITECTURAL ANALYSIS:
+-- 1. IMMUTABILITY & AUDITABILITY:
+--    - In SQL: An administrator / DBA superuser can execute:
 --      UPDATE accounts SET balance = 999999999 WHERE account_address = '0xAdmin';
 --      DELETE FROM audit_logs WHERE id = 5;
---      => Dữ liệu quá khứ bị biến mất hoặc làm giả mà hệ thống không cảnh báo!
---    - Trong Blockchain:
---      Dữ liệu được băm (hash) thành khối, liên kết chặt chẽ bằng prevHash.
---      Mọi thay đổi số dư BẮT BUỘC phải đi qua Smart Contract (hàm transfer/deposit)
---      và được đóng gói vào một Block có chữ ký số. Không ai có thể DELETE hay UPDATE quá khứ.
+--      => Past historical records can be forged or deleted silently without warning!
+--    - In Blockchain:
+--      Entries are packaged into blocks linked cryptographically by prevHash.
+--      Every state transition MUST be processed through smart contracts (transfer/deposit)
+--      and validated by consensus quorum. Past transactions cannot be overwritten or deleted.
 -- -------------------------------------------------------------------------

@@ -1,11 +1,11 @@
 /**
- * SIMULATE.JS - MÔ PHỎNG ĐỐI CHIẾU SQL VS BLOCKCHAIN BẰNG NODE.JS
+ * SIMULATE.JS - SQL VS BLOCKCHAIN CRYPTOGRAPHIC SIMULATION IN NODE.JS
  * 
- * Chạy lệnh: node scripts/simulate.js
+ * Run command: node scripts/simulate.js
  * 
- * Mục đích:
- * 1. Cho bạn thấy sự khác biệt giữa "Mutable State" (SQL) và "Append-Only Hash Chain" (Blockchain).
- * 2. Chứng minh toán học tại sao sửa 1 byte trong quá khứ của Blockchain sẽ phá vỡ toàn bộ chuỗi.
+ * Purpose:
+ * 1. Demonstrate the contrast between "Mutable In-Place State" (SQL) and "Append-Only Hash Chaining" (Blockchain).
+ * 2. Mathematically demonstrate why mutating 1 byte in past blockchain history breaks downstream integrity.
  */
 
 const crypto = require('crypto');
@@ -15,43 +15,43 @@ function sha256(data) {
 }
 
 console.log('='.repeat(70));
-console.log(' PHẦN 1: MÔ PHỎNG HỆ THỐNG CƠ SỞ DỮ LIỆU TẬP TRUNG (SQL / RDBMS)');
+console.log(' PART 1: CENTRALIZED DATABASE (SQL / RDBMS) MUTATION SIMULATION');
 console.log('='.repeat(70));
 
-// Giả lập bảng accounts trong SQL
+// Simulated accounts table in SQL
 const sqlAccountsTable = {
     '0xAlice': 500,
     '0xBob': 200
 };
 
-console.log('Trạng thái ban đầu trong SQL:');
+console.log('Initial SQL database state:');
 console.table(sqlAccountsTable);
 
-// Giao dịch chuyển tiền trong SQL (In-place mutation)
-console.log('\n-> Thực hiện UPDATE: Alice chuyển 100 cho Bob...');
+// Transaction transfer in SQL (In-place mutation)
+console.log('\n-> Executing UPDATE: Alice transfers 100 to Bob...');
 sqlAccountsTable['0xAlice'] -= 100;
 sqlAccountsTable['0xBob'] += 100;
-console.log('Trạng thái sau giao dịch hợp lệ:');
+console.log('State after authorized transaction:');
 console.table(sqlAccountsTable);
 
-// Hacker hoặc DBA lén sửa số dư trong cơ sở dữ liệu
-console.log('\n[!] Hacker hoặc Admin can thiệp vào máy chủ SQL:');
-console.log('    Thực thi: UPDATE accounts SET balance = 999999 WHERE address = "0xAlice";');
+// Silent administrator / DBA tamper
+console.log('\n[!] Malicious DBA / Unauthorized admin memory overwrite:');
+console.log('    Executing: UPDATE accounts SET balance = 999999 WHERE address = "0xAlice";');
 sqlAccountsTable['0xAlice'] = 999999;
-console.log('Trạng thái sau khi bị giả mạo:');
+console.log('State after silent tamper:');
 console.table(sqlAccountsTable);
-console.log('=> KẾT LUẬN SQL: Dữ liệu bị sửa mà không có cơ chế toán học nội tại nào tự phát hiện!');
+console.log('=> SQL FINDING: Data was mutated in-place with zero intrinsic cryptographic anomaly detection!');
 
 
 console.log('\n' + '='.repeat(70));
-console.log(' PHẦN 2: MÔ PHỎNG CHUỖI KHỐI (BLOCKCHAIN & HASH CHAIN)');
+console.log(' PART 2: DECENTRALIZED BLOCKCHAIN CRYPTOGRAPHIC HASH CHAINING');
 console.log('='.repeat(70));
 
 class Block {
     constructor(index, timestamp, data, previousHash = '') {
         this.index = index;
         this.timestamp = timestamp;
-        this.data = data; // Dữ liệu giao dịch (vd: Alice -> Bob: 100)
+        this.data = data; // Transaction payload
         this.previousHash = previousHash;
         this.hash = this.calculateHash();
     }
@@ -68,7 +68,7 @@ class MiniBlockchain {
     }
 
     createGenesisBlock() {
-        return new Block(0, '2026-01-01T00:00:00Z', { info: 'Genesis Block - Khối nguyên thủy' }, '0'.repeat(64));
+        return new Block(0, '2026-01-01T00:00:00Z', { info: 'Genesis Block' }, '0'.repeat(64));
     }
 
     getLatestBlock() {
@@ -91,21 +91,21 @@ class MiniBlockchain {
             const currentBlock = this.chain[i];
             const previousBlock = this.chain[i - 1];
 
-            // 1. Kiểm tra mã băm của chính khối hiện tại có khớp với nội dung không
+            // 1. Verify current block's hash matches its computed payload
             if (currentBlock.hash !== currentBlock.calculateHash()) {
                 return {
                     valid: false,
                     tamperedBlockIndex: i,
-                    reason: `Nội dung khối #${i} đã bị thay đổi! Hash tính lại không khớp.`
+                    reason: `Block #${i} content altered! Recomputed hash mismatch (Avalanche Effect).`
                 };
             }
 
-            // 2. Kiểm tra liên kết mật mã tới khối trước
+            // 2. Verify cryptographic linkage to the preceding block
             if (currentBlock.previousHash !== previousBlock.hash) {
                 return {
                     valid: false,
                     tamperedBlockIndex: i,
-                    reason: `Mối liên kết chuỗi bị đứt gãy tại khối #${i}! previousHash không khớp với hash của khối #${i-1}.`
+                    reason: `Broken chain link at Block #${i}! previousHash does not match hash of Block #${i-1}.`
                 };
             }
         }
@@ -115,11 +115,11 @@ class MiniBlockchain {
 
 const myChain = new MiniBlockchain();
 
-console.log('Đang tạo và thêm các khối giao dịch vào Blockchain...');
+console.log('Appending transaction blocks to the blockchain ledger...');
 myChain.addBlock({ from: '0xAlice', to: '0xBob', amount: 100, signature: '0x3a4b...' });
 myChain.addBlock({ from: '0xBob', to: '0xCharlie', amount: 40, signature: '0x7c8d...' });
 
-console.log('\nDanh sách các khối hiện tại trong sổ cái:');
+console.log('\nCurrent blocks recorded in distributed ledger:');
 myChain.chain.forEach(b => {
     console.log(`[Block #${b.index}]`);
     console.log(` - Data        : ${JSON.stringify(b.data)}`);
@@ -128,18 +128,18 @@ myChain.chain.forEach(b => {
 });
 
 let check = myChain.verifyChainIntegrity();
-console.log(`\n-> Kiểm tra tính toàn vẹn của chuỗi khối: ${check.valid ? 'HỢP LỆ (VALID) ✓' : 'BỊ LỖI ✗'}`);
+console.log(`\n-> Verifying ledger cryptographic integrity: ${check.valid ? 'VALID ✓' : 'BROKEN ✗'}`);
 
-console.log('\n[!] KỊCH BẢN TẤN CÔNG: Hacker cố tình sửa dữ liệu ở Khối #1 (tăng số tiền từ 100 lên 1000)');
-myChain.chain[1].data.amount = 1000; // Sửa dữ liệu
+console.log('\n[!] ATTACK SCENARIO: Malicious node tampers Block #1 data (altering amount 100 -> 1000)');
+myChain.chain[1].data.amount = 1000;
 
-console.log('-> Đang chạy kiểm tra mật mã toàn bộ các node trong mạng P2P:');
+console.log('-> Running P2P consensus cryptographic verification across network peers:');
 check = myChain.verifyChainIntegrity();
 
 if (!check.valid) {
-    console.log(`[CẢNH BÁO PHÁT HIỆN GIAN LẬN]`);
-    console.log(`-> Kết quả: BẤT HỢP LỆ (INVALID) ✗`);
-    console.log(`-> Lý do   : ${check.reason}`);
-    console.log(`=> KẾT LUẬN: Mọi node khác trên mạng P2P sẽ lập tức từ chối khối rác này!`);
-    console.log(`   Dữ liệu lịch sử trên Blockchain được bảo vệ tuyệt đối bằng mật mã học.`);
+    console.log(`[ALERT: CRYPTOGRAPHIC TAMPER DETECTED]`);
+    console.log(`-> Verification Result: INVALID ✗`);
+    console.log(`-> Cause               : ${check.reason}`);
+    console.log(`=> BLOCKCHAIN FINDING: All independent P2P nodes immediately REJECT the forged chain!`);
+    console.log(`   Past ledger entries remain mathematically immutable.`);
 }

@@ -139,7 +139,7 @@ async function sha256(message) {
 // ============================================================================
 function showCyberToast(options) {
   const {
-    title = 'THÔNG BÁO HỆ THỐNG',
+    title = 'SYSTEM NOTIFICATION',
     type = 'cyan',
     message = '',
     duration = 6500
@@ -168,7 +168,7 @@ function showCyberToast(options) {
     </div>
     <div class="toast-body">${message}</div>
     <div class="toast-footer">
-      <button class="toast-action-btn">Đã hiểu ✓</button>
+      <button class="toast-action-btn">Understood ✓</button>
     </div>
     <div class="toast-progress-bar"></div>
   `;
@@ -236,12 +236,12 @@ let isSqlRunning = false;
 // Blockchain Simulation State
 let isGossipRunning = false;
 
-// Khởi tạo mạng lưới hạ tầng
+// Initialize network topologies
 function initNetworkTopologies(width, height) {
   const cx = width / 2;
   const cy = height / 2;
 
-  // 1. Cấu hình SQL Star Topology
+  // 1. Configure SQL Star Topology
   sqlServer.x = cx;
   sqlServer.y = cy;
 
@@ -261,7 +261,7 @@ function initNetworkTopologies(width, height) {
     heartbeatOffset: Math.random() * 100
   }));
 
-  // 2. Cấu hình Blockchain P2P Mesh Topology
+  // 2. Configure Blockchain P2P Mesh Topology
   p2pNodes = [
     // Endpoint A: Alice
     { id: 'alice', name: 'Node Alice', peerId: '0x71c', x: cx, y: height * 0.14, role: 'full', isOffline: false, litGlow: 0, icon: 'A' },
@@ -296,7 +296,7 @@ function initNetworkTopologies(width, height) {
     { id: 'p14', name: 'Peer Node', peerId: '0xcc', x: width * 0.64, y: height * 0.64, role: 'peer', isOffline: false, litGlow: 0 }
   ];
 
-  // Các liên kết mạng P2P (DevP2P Mesh Overlay)
+  // P2P Mesh Overlay Network Links (DevP2P)
   const linkDefs = [
     ['alice', 'p1'], ['alice', 'p2'], ['alice', 'p11'], ['alice', 'p12'],
     ['p1', 'p3'], ['p1', 'p11'], ['p1', 'p5'],
@@ -336,10 +336,10 @@ function executeSqlQuery() {
     playSound('alarm');
     updateSqlHud(`[TCP ERROR] connect ECONNREFUSED 192.168.1.10:5432 - Single Point of Failure (SPOF)!`, true);
     showCyberToast({
-      title: 'LỖI MẠNG: SINGLE POINT OF FAILURE',
+      title: 'NETWORK ERROR: SINGLE POINT OF FAILURE',
       type: 'danger',
-      message: 'Server cơ sở dữ liệu trung tâm đã bị SẬP! Client không thể kết nối (ECONNREFUSED). Toàn bộ hệ thống bị tê liệt hoàn toàn.',
-      duration: 4000
+      message: 'Central database server (192.168.1.10:5432) has CRASHED! Connection refused (ECONNREFUSED). Entire client cluster is halted.',
+      duration: 4500
     });
     return;
   }
@@ -363,7 +363,7 @@ function executeSqlQuery() {
       sqlServer.pulseGlow = 1;
       sqlServer.memoryActivity = 1;
 
-      // Cập nhật số dư ghi đè tại chỗ (In-place mutation)
+      // In-place mutation
       sqlAccounts.Alice = 450;
       sqlAccounts.Bob = 250;
       renderSqlTable();
@@ -382,7 +382,7 @@ function executeSqlQuery() {
         onComplete: () => {
           bob.pulse = 1;
           isSqlRunning = false;
-          updateSqlHud(`[COMMITTED] 1 Query applied directly via TCP in 0.82ms. In-place state updated.`);
+          updateSqlHud(`[COMMITTED] 1 Query applied directly via TCP socket in 0.82ms. In-place state updated.`);
           updateResultsTable('sql', '0.82 ms', '1 Central DB Core', 'MUTABLE (In-place Overwrite)');
         }
       });
@@ -394,10 +394,10 @@ async function addBlockchainTransaction() {
   if (isChainTampered) {
     playSound('alarm');
     showCyberToast({
-      title: 'GIAO DỊCH BỊ TỪ CHỐI',
+      title: 'TRANSACTION REJECTED',
       type: 'danger',
-      message: 'Chuỗi đang bị đứt gãy do phát hiện gian lận! Hãy bấm "Khôi Phục Dữ Liệu" trước.',
-      duration: 3500
+      message: 'Cryptographic hash mismatch! The chain has been broken by unauthorized alteration. Restore consensus before broadcasting new transactions.',
+      duration: 4000
     });
     return;
   }
@@ -455,7 +455,7 @@ async function addBlockchainTransaction() {
       isGossipRunning = false;
       playSound('block_mined');
 
-      // Nối thêm khối #3 nếu chưa có
+      // Append Block #3 if not present
       if (blockchain.length === 3) {
         const lastBlock = blockchain[blockchain.length - 1];
         sha256(`3|Alice->Bob 50 ETH|${lastBlock.hash}|58392`).then(b3Hash => {
@@ -500,6 +500,88 @@ function startRaceSimulation() {
   addBlockchainTransaction();
 }
 
+function dbaTamperSql() {
+  if (isSqlServerDown) {
+    playSound('alarm');
+    showCyberToast({
+      title: 'CONNECTION REFUSED',
+      type: 'danger',
+      message: 'Central database server is offline. Even DBA root terminal cannot connect.',
+      duration: 4000
+    });
+    return;
+  }
+  playSound('alarm');
+  const dba = sqlClients.find(c => c.id === 'dba');
+  if (!dba) return;
+
+  // DBA sends covert raw memory overwrite via SSH port 22 directly into DB memory
+  sqlPackets.push({
+    fromX: dba.x, fromY: dba.y,
+    toX: sqlServer.x + 30, toY: sqlServer.y - sqlServer.h / 2,
+    progress: 0,
+    duration: 220,
+    startTime: performance.now(),
+    color: '#ef4444',
+    label: 'DBA ROOT OVERWRITE',
+    onComplete: () => {
+      sqlServer.pulseGlow = 1.5;
+      sqlServer.memoryActivity = 2; // Red glitch indicator
+      sqlAccounts.Alice = 999999;
+      renderSqlTable();
+      updateSqlHud(`[DBA TAMPER] UPDATE accounts SET balance = 999999 WHERE id = 'Alice' (ACCEPTED BY ROOT)`, true);
+      showCyberToast({
+        title: 'SQL DBA TAMPER: SILENT OVERWRITE',
+        type: 'danger',
+        message: 'Database Administrator (192.168.1.99) executed raw memory overwrite:<br><code>UPDATE accounts SET balance = 999999;</code><br><br>➜ In-place memory silently modified with zero cryptographic verification or consensus!',
+        duration: 7000
+      });
+      updateResultsTable('sql', '0.82 ms', '1 Central Core', 'TAMPERED (Silently Overwritten!)');
+    }
+  });
+}
+
+function toggleTamperBlockchain() {
+  const btn = document.getElementById('btnTamperBlockchain');
+  if (!isChainTampered) {
+    playSound('alarm');
+    isChainTampered = true;
+    if (blockchain[1]) {
+      blockchain[1].data = "Deposit 9,999 ETH (FAKE)";
+      blockchain[1].hash = "bad_c0de";
+    }
+    renderBlockCards();
+    updateBlockchainHud(`[BFT SECURITY ALERT] Block #1 Tampered! PrevHash mismatch at Block #2! Chain rejected!`, true);
+    if (btn) {
+      btn.innerHTML = "🛡️ Restore Consensus";
+      btn.className = "btn-action danger";
+    }
+    showCyberToast({
+      title: 'SECURITY ALERT: BLOCK TAMPER DETECTED',
+      type: 'danger',
+      message: 'Malicious actor altered Block #1 payload to 9,999 ETH.<br><br>➜ Hash changed ➜ Mismatch with Block #2 PreviousHash!<br>➜ All 14,574 P2P nodes immediately <strong>REJECTED</strong> the invalid chain!',
+      duration: 7500
+    });
+    updateResultsTable('chain', 'REJECTED', '14,574 Peers', 'INVALID CHAIN (Tamper Detected!)');
+  } else {
+    playSound('restore');
+    isChainTampered = false;
+    initBlockchainLedger();
+    updateBlockchainHud(`[CANONICAL RESTORED] Canonical chain synchronized across 14,574 peers.`);
+    if (btn) {
+      btn.innerHTML = "💥 Tamper Block (Chain)";
+      btn.className = "btn-action danger";
+    }
+    showCyberToast({
+      title: 'CONSENSUS RESTORED',
+      type: 'success',
+      message: 'Canonical blockchain successfully re-synchronized across all peer nodes in the mesh network.',
+      duration: 3500
+    });
+    updateResultsTable('chain', '1,420 ms', '14,574 Peers', 'IMMUTABLE ✓ (SHA-256)');
+  }
+}
+
 function toggleSqlServerCrash() {
   isSqlServerDown = !isSqlServerDown;
   const btn = document.getElementById('btnCrashSqlServer');
@@ -507,7 +589,7 @@ function toggleSqlServerCrash() {
   if (isSqlServerDown) {
     playSound('alarm');
     if (btn) {
-      btn.innerHTML = "🟢 Bật Lại Server";
+      btn.innerHTML = "🟢 Restore Server";
       btn.className = "btn-action danger";
     }
     const metric = document.getElementById('sqlMetricCounter');
@@ -516,17 +598,17 @@ function toggleSqlServerCrash() {
     updateSqlHud(`[SPOF CRASH] Central DB offline. All client sockets closed with ECONNREFUSED.`, true);
     renderSqlTable();
     showCyberToast({
-      title: 'SỰ CỐ MẠNG: SERVER SẬP (SPOF)',
+      title: 'NETWORK ERROR: SERVER CRASH (SPOF)',
       type: 'danger',
-      message: 'Máy chủ DB trung tâm (192.168.1.10) đã bị ngắt kết nối! Toàn bộ client bị tê liệt (Single Point of Failure).',
+      message: 'Central database server (192.168.1.10) has been disconnected! All client connections dropped (Single Point of Failure).',
       duration: 4500
     });
     updateResultsTable('sql', 'TIMEOUT', '0 (OFFLINE)', 'SYSTEM HALTED (SPOF)');
   } else {
     playSound('restore');
     if (btn) {
-      btn.innerHTML = "🔌 Sập Server (SPOF Test)";
-      btn.className = "btn-action cyan";
+      btn.innerHTML = "🔌 Crash Server (SPOF)";
+      btn.className = "btn-action ghost";
     }
     const metric = document.getElementById('sqlMetricCounter');
     if (metric) metric.innerHTML = '<span class="done-tag cyan">READY</span> 0.82 ms';
@@ -535,9 +617,9 @@ function toggleSqlServerCrash() {
     renderSqlTable();
     updateSqlHud(`[RECOVERY] Central DB restarted on Port 5432. All client sockets reconnected.`);
     showCyberToast({
-      title: 'MÁY CHỦ ĐÃ KHÔI PHỤC',
+      title: 'SERVER RESTORED',
       type: 'success',
-      message: 'Máy chủ SQL trung tâm đã sẵn sàng tiếp nhận truy vấn trở lại.',
+      message: 'Central SQL database is back online and accepting queries.',
       duration: 3000
     });
     updateResultsTable('sql', '0.82 ms', '1 Central DB Core', 'MUTABLE (In-place Overwrite)');
@@ -552,7 +634,7 @@ function toggleP2PPartition() {
   if (isP2PPartitioned) {
     playSound('alarm');
     if (btn) {
-      btn.innerHTML = "🟢 Bật Lại 100% Node";
+      btn.innerHTML = "🟢 Restore 100% Nodes";
       btn.className = "btn-action amber";
     }
 
@@ -562,77 +644,24 @@ function toggleP2PPartition() {
 
     updateBlockchainHud(`[BFT TEST] 30% of network nodes disconnected. Testing Gossip Mesh rerouting...`, true);
     showCyberToast({
-      title: 'MẠNG P2P: CHỊU LỖI BYZANTINE (BFT)',
+      title: 'P2P MESH: BYZANTINE FAULT TOLERANCE (BFT)',
       type: 'amber',
-      message: 'Đã ngắt kết nối 30% node. Bấm "Chạy Đua": Sóng Gossip vẫn tự tìm đường vòng qua các node sống sót để chốt khối mà không hề bị sập!',
+      message: 'Disconnected ~30% of network nodes. Trigger "Race Comparison" or "P2P Gossip": Wavefront reroutes across surviving peers to reach consensus without downtime!',
       duration: 5500
     });
   } else {
     playSound('restore');
     if (btn) {
-      btn.innerHTML = "📶 Rớt 30% Node (BFT Test)";
-      btn.className = "btn-action amber";
+      btn.innerHTML = "📶 Drop 30% Nodes (BFT)";
+      btn.className = "btn-action ghost";
     }
 
     p2pNodes.forEach(n => { n.isOffline = false; });
     updateBlockchainHud(`[MESH HEALTH] 100% peer nodes online and synchronized.`);
     showCyberToast({
-      title: 'KHÔI PHỤC TOÀN MẠNG',
+      title: 'NETWORK RESTORED',
       type: 'success',
-      message: 'Toàn bộ 14,574 node P2P đã được bật lại và đồng bộ.',
-      duration: 3000
-    });
-  }
-}
-
-function toggleTamperTest() {
-  const btn = document.getElementById('btnTamper');
-  isChainTampered = !isChainTampered;
-
-  if (isChainTampered) {
-    playSound('alarm');
-    if (btn) btn.innerHTML = "🛡️ Khôi Phục Dữ Liệu";
-
-    // 1. SQL side: DBA alters Alice's balance silently
-    sqlAccounts.Alice = 999999;
-    sqlServer.memoryActivity = 2;
-    renderSqlTable();
-    updateSqlHud(`[DBA TAMPER] UPDATE accounts SET balance = 999999 (ACCEPTED SILENTLY BY ROOT)`, true);
-    updateResultsTable('sql', '0.82 ms', '1 Central Core', 'TAMPERED (Silently Altered!)');
-
-    // 2. Blockchain side: Block #1 is tampered with fake data
-    if (blockchain[1]) {
-      blockchain[1].data = "Deposit 9,999 ETH (FAKE)";
-      blockchain[1].hash = "bad_c0de";
-    }
-    renderBlockCards();
-    updateBlockchainHud(`[TAMPER DETECTED] Block #1 modified! PrevHash mismatch at Block #2! Chain rejected!`, true);
-    updateResultsTable('chain', 'REJECTED', '14,574 Peers', 'INVALID CHAIN (Tamper Detected!)');
-
-    showCyberToast({
-      title: 'KỊCH BẢN THỬ GIAN LẬN (TAMPER)',
-      type: 'danger',
-      message: '<strong>• SQL:</strong> Quản trị viên (DBA) lén sửa số dư thành 999,999 ETH mà hệ thống không hề hay biết!<br><strong>• Blockchain:</strong> Hacker sửa khối #1 ➜ Toàn mạng phát hiện sai lệch hàm băm và <strong>TỪ CHỐI</strong>!',
-      duration: 6000
-    });
-  } else {
-    playSound('restore');
-    if (btn) btn.innerHTML = "⚠️ Thử Sửa Trộm (Tamper Test)";
-
-    sqlAccounts.Alice = 450;
-    sqlServer.memoryActivity = 0;
-    renderSqlTable();
-    updateSqlHud(`[CANONICAL] SQL state synchronized.`);
-    updateResultsTable('sql', '0.82 ms', '1 Central DB Core', 'MUTABLE (In-place Overwrite)');
-
-    initBlockchainLedger();
-    updateBlockchainHud(`[CANONICAL RESTORED] Canonical chain synchronized across 14,574 peers.`);
-    updateResultsTable('chain', '1,420 ms', '14,574 Peers', 'IMMUTABLE ✓ (SHA-256)');
-
-    showCyberToast({
-      title: 'ĐÃ KHÔI PHỤC NGUYÊN VẸN',
-      type: 'success',
-      message: 'Dữ liệu của cả hai hệ thống đã được hoàn nguyên về trạng thái chuẩn.',
+      message: 'All 14,574 P2P nodes reconnected and synchronized.',
       duration: 3000
     });
   }
@@ -653,19 +682,20 @@ function resetDemo() {
 
   const btnCrash = document.getElementById('btnCrashSqlServer');
   if (btnCrash) {
-    btnCrash.innerHTML = "🔌 Sập Server (SPOF Test)";
-    btnCrash.className = "btn-action cyan";
+    btnCrash.innerHTML = "🔌 Crash Server (SPOF)";
+    btnCrash.className = "btn-action ghost";
   }
 
   const btnBft = document.getElementById('btnPartitionP2P');
   if (btnBft) {
-    btnBft.innerHTML = "📶 Rớt 30% Node (BFT Test)";
-    btnBft.className = "btn-action amber";
+    btnBft.innerHTML = "📶 Drop 30% Nodes (BFT)";
+    btnBft.className = "btn-action ghost";
   }
 
-  const btnTamper = document.getElementById('btnTamper');
-  if (btnTamper) {
-    btnTamper.innerHTML = "⚠️ Thử Sửa Trộm (Tamper Test)";
+  const btnTamperBlockchain = document.getElementById('btnTamperBlockchain');
+  if (btnTamperBlockchain) {
+    btnTamperBlockchain.innerHTML = "💥 Tamper Block (Chain)";
+    btnTamperBlockchain.className = "btn-action danger";
   }
 
   const sqlMetric = document.getElementById('sqlMetricCounter');
@@ -684,9 +714,9 @@ function resetDemo() {
   initBlockchainLedger();
 
   showCyberToast({
-    title: 'ĐÃ ĐẶT LẠI DEMO',
+    title: 'DEMO RESET',
     type: 'success',
-    message: 'Toàn bộ trạng thái mạng và dữ liệu đã được làm mới, sẵn sàng chạy kịch bản mới.',
+    message: 'Network topologies and ledger states have been reset to baseline.',
     duration: 2500
   });
 }
@@ -728,11 +758,11 @@ function renderSqlMap() {
 
   const now = performance.now();
 
-  // 1. Nền phòng máy chủ Datacenter với lưới vi mạch (Circuit Grid)
+  // 1. Datacenter Server Room Background with Circuit Grid
   sqlCtx.fillStyle = '#03070f';
   sqlCtx.fillRect(0, 0, w, h);
 
-  // Lưới vi mạch nền mờ
+  // Subtle circuit grid
   sqlCtx.strokeStyle = 'rgba(0, 240, 255, 0.035)';
   sqlCtx.lineWidth = 1;
   const gridSize = 32;
@@ -749,13 +779,13 @@ function renderSqlMap() {
     sqlCtx.stroke();
   }
 
-  // 2. Vẽ các dây cáp mạng hình sao (Star Cables) nối từ Client về Server
+  // 2. Draw Star Topology Cables connecting Clients to Central Server
   sqlCables.forEach(cable => {
     const c = cable.client;
     sqlCtx.save();
 
     if (isSqlServerDown) {
-      // Dây cáp bị đứt đoạn khi Server sập (ECONNREFUSED)
+      // Severed cable connection when server is offline (ECONNREFUSED)
       sqlCtx.beginPath();
       sqlCtx.setLineDash([5, 5]);
       sqlCtx.moveTo(c.x, c.y);
@@ -765,7 +795,7 @@ function renderSqlMap() {
       sqlCtx.stroke();
       sqlCtx.setLineDash([]);
 
-      // Ký hiệu ✕ lỗi kết nối ở giữa dây cáp
+      // Connection failure icon (✕) at cable midpoint
       const midX = (c.x + sqlServer.x) / 2;
       const midY = (c.y + sqlServer.y) / 2;
       sqlCtx.fillStyle = '#ef4444';
@@ -773,7 +803,7 @@ function renderSqlMap() {
       sqlCtx.textAlign = 'center';
       sqlCtx.fillText('✕', midX, midY + 3);
     } else {
-      // Dây cáp mạng bình thường
+      // Normal active network cable
       sqlCtx.beginPath();
       sqlCtx.moveTo(c.x, c.y);
       sqlCtx.lineTo(sqlServer.x, sqlServer.y);
@@ -781,7 +811,7 @@ function renderSqlMap() {
       sqlCtx.lineWidth = 1.5;
       sqlCtx.stroke();
 
-      // Hạt xung nhịp dữ liệu nền (Idle heartbeat pulse)
+      // Idle heartbeat pulse packet
       const t = ((now * 0.04 + cable.heartbeatOffset) % 100) / 100;
       const px = c.x + (sqlServer.x - c.x) * t;
       const py = c.y + (sqlServer.y - c.y) * t;
@@ -793,12 +823,12 @@ function renderSqlMap() {
     sqlCtx.restore();
   });
 
-  // 3. Vẽ Server Rack trung tâm (Datacenter DB Rack Unit)
+  // 3. Draw Central Server Rack (Datacenter DB Rack Unit)
   const sx = sqlServer.x - sqlServer.w / 2;
   const sy = sqlServer.y - sqlServer.h / 2;
 
   sqlCtx.save();
-  // Vầng hào quang của Server
+  // Server glow aura
   if (!isSqlServerDown) {
     sqlCtx.shadowColor = sqlServer.memoryActivity === 2 ? '#ef4444' : '#00f0ff';
     sqlCtx.shadowBlur = 18 + Math.sin(now / 200) * 4;
@@ -807,7 +837,7 @@ function renderSqlMap() {
     sqlCtx.shadowBlur = 25;
   }
 
-  // Khung vỏ tủ Rack kim loại
+  // Metallic server rack chassis
   sqlCtx.fillStyle = isSqlServerDown ? '#1c0a0a' : '#071524';
   sqlCtx.strokeStyle = isSqlServerDown ? '#ef4444' : (sqlServer.memoryActivity === 2 ? '#f59e0b' : '#00f0ff');
   sqlCtx.lineWidth = 2;
@@ -817,7 +847,7 @@ function renderSqlMap() {
   sqlCtx.stroke();
   sqlCtx.shadowBlur = 0;
 
-  // 3 Khay máy chủ phiến (Server Blades) bên trong tủ Rack
+  // 3 Server Blades inside the Rack
   const bladeH = 16;
   for (let b = 0; b < 3; b++) {
     const by = sy + 6 + b * (bladeH + 4);
@@ -827,7 +857,7 @@ function renderSqlMap() {
     sqlCtx.fillRect(sx + 8, by, sqlServer.w - 16, bladeH);
     sqlCtx.strokeRect(sx + 8, by, sqlServer.w - 16, bladeH);
 
-    // Đèn LED ổ cứng nhấp nháy (Drive Activity LEDs)
+    // Drive Activity LEDs
     for (let led = 0; led < 4; led++) {
       const ledX = sx + 14 + led * 7;
       const ledY = by + bladeH / 2;
@@ -839,17 +869,17 @@ function renderSqlMap() {
       sqlCtx.fill();
     }
 
-    // Nhãn khay ổ cứng
+    // Drive bay label
     sqlCtx.fillStyle = isSqlServerDown ? '#f87171' : '#94a3b8';
     sqlCtx.font = 'bold 7.5px monospace';
     sqlCtx.textAlign = 'left';
     sqlCtx.fillText(`BAY 0${b + 1}: ${isSqlServerDown ? 'OFFLINE' : (b === 0 ? 'RAM' : 'SSD')}`, sx + 46, by + bladeH / 2 + 2.5);
   }
 
-  // Quạt tản nhiệt hoặc radar sweep
+  // Server fan angle
   sqlServer.fanAngle += 0.08;
 
-  // Chữ nhãn trạng thái chính trên Server
+  // Primary server status text
   sqlCtx.fillStyle = isSqlServerDown ? '#fca5a5' : '#e0f2fe';
   sqlCtx.font = 'bold 8.5px monospace';
   sqlCtx.textAlign = 'center';
@@ -859,7 +889,7 @@ function renderSqlMap() {
     sy + sqlServer.h + 14
   );
 
-  // Tia lửa điện nếu Server sập
+  // Electrical sparks if server crashes
   if (isSqlServerDown && Math.random() < 0.3) {
     sqlSparks.push({
       x: sx + Math.random() * sqlServer.w,
@@ -870,7 +900,7 @@ function renderSqlMap() {
     });
   }
 
-  // Vẽ các hạt tia lửa điện
+  // Draw spark particles
   sqlSparks.forEach((sp, idx) => {
     sp.x += sp.vx;
     sp.y += sp.vy;
@@ -884,12 +914,12 @@ function renderSqlMap() {
 
   sqlCtx.restore();
 
-  // 4. Vẽ các máy trạm khách (Client Workstations)
+  // 4. Draw Client Workstations
   sqlClients.forEach(c => {
     sqlCtx.save();
     const isAliceOrBob = c.id === 'alice' || c.id === 'bob';
 
-    // Vẽ khối viền node
+    // Draw node circular frame
     sqlCtx.beginPath();
     sqlCtx.arc(c.x, c.y, isAliceOrBob ? 14 : 10, 0, Math.PI * 2);
 
@@ -905,7 +935,7 @@ function renderSqlMap() {
     sqlCtx.lineWidth = isAliceOrBob ? 2 : 1;
     sqlCtx.stroke();
 
-    // Tên máy và IP
+    // Node Name & IP Label
     sqlCtx.fillStyle = '#94a3b8';
     sqlCtx.font = '7.5px monospace';
     sqlCtx.textAlign = 'center';
@@ -931,7 +961,7 @@ function renderSqlMap() {
     sqlCtx.restore();
   });
 
-  // 5. Cập nhật và vẽ các gói tin mạng TCP đang di chuyển
+  // 5. Update and Draw Active TCP Sockets & Packets
   sqlPackets.forEach(pkt => {
     const elapsed = now - pkt.startTime;
     pkt.progress = Math.min(1, elapsed / pkt.duration);
@@ -947,7 +977,7 @@ function renderSqlMap() {
     sqlCtx.shadowBlur = 14;
     sqlCtx.fill();
 
-    // Vệt đuôi của gói tin
+    // Packet motion blur trail
     const tailX = pkt.fromX + (pkt.toX - pkt.fromX) * Math.max(0, pkt.progress - 0.18);
     const tailY = pkt.fromY + (pkt.toY - pkt.fromY) * Math.max(0, pkt.progress - 0.18);
     sqlCtx.beginPath();
@@ -957,7 +987,7 @@ function renderSqlMap() {
     sqlCtx.lineWidth = 3;
     sqlCtx.stroke();
 
-    // Nhãn gói tin
+    // Packet payload label
     if (pkt.label) {
       sqlCtx.fillStyle = '#ffffff';
       sqlCtx.font = 'bold 8px monospace';
@@ -986,11 +1016,11 @@ function renderP2PMap() {
 
   const now = performance.now();
 
-  // 1. Nền không gian mạng phi tập trung (Decentralized Constellation Space)
+  // 1. Decentralized Constellation Cyberspace Background
   p2pCtx.fillStyle = '#040508';
   p2pCtx.fillRect(0, 0, w, h);
 
-  // Lưới tinh vân nền mờ
+  // Subtle geometric grid
   p2pCtx.strokeStyle = 'rgba(245, 158, 11, 0.025)';
   p2pCtx.lineWidth = 1;
   const hexStep = 44;
@@ -1007,7 +1037,7 @@ function renderP2PMap() {
     p2pCtx.stroke();
   }
 
-  // 2. Vẽ các đợt sóng Gossip đồng tâm ("spreads in rings") lan tỏa từ Alice
+  // 2. Draw Concentric Gossip Wavefronts ("spreads in rings") radiating from Alice
   p2pWavefronts.forEach(wave => {
     const elapsed = now - wave.startTime;
     const progress = Math.min(1, elapsed / wave.duration);
@@ -1030,7 +1060,7 @@ function renderP2PMap() {
   });
   p2pWavefronts = p2pWavefronts.filter(w => !w.done);
 
-  // 3. Vẽ tất cả các liên kết P2P Mesh Overlay
+  // 3. Draw P2P Mesh Overlay Links
   p2pLinks.forEach(link => {
     const u = link.u;
     const v = link.v;
@@ -1039,7 +1069,7 @@ function renderP2PMap() {
     p2pCtx.save();
 
     if (u.isOffline || v.isOffline) {
-      // Liên kết tới node bị rớt mạng (BFT Partition)
+      // Link connected to offline peer (BFT Partition)
       p2pCtx.beginPath();
       p2pCtx.setLineDash([3, 4]);
       p2pCtx.moveTo(u.x, u.y);
@@ -1049,7 +1079,7 @@ function renderP2PMap() {
       p2pCtx.stroke();
       p2pCtx.setLineDash([]);
     } else if (isChainTampered && (u.id === 'alice' || v.id === 'alice')) {
-      // Liên kết bị tường lửa mật mã chặn khi phát hiện can thiệp
+      // Cryptographic firewall quarantine when tampering is detected
       p2pCtx.beginPath();
       p2pCtx.moveTo(u.x, u.y);
       p2pCtx.lineTo(v.x, v.y);
@@ -1059,7 +1089,7 @@ function renderP2PMap() {
       p2pCtx.shadowBlur = 12;
       p2pCtx.stroke();
     } else if (link.isCanonical) {
-      // Tuyến đường đồng thuận chính tắc được xác nhận (Vàng ánh kim rực rỡ)
+      // Confirmed canonical consensus route (Radiant golden beam)
       p2pCtx.beginPath();
       p2pCtx.moveTo(u.x, u.y);
       p2pCtx.lineTo(v.x, v.y);
@@ -1069,7 +1099,7 @@ function renderP2PMap() {
       p2pCtx.shadowBlur = 16;
       p2pCtx.stroke();
     } else if (link.activity > 0) {
-      // Sóng Gossip đang quét qua liên kết này
+      // Gossip wavefront sweeping through this link
       p2pCtx.beginPath();
       p2pCtx.moveTo(u.x, u.y);
       p2pCtx.lineTo(v.x, v.y);
@@ -1078,7 +1108,7 @@ function renderP2PMap() {
       p2pCtx.stroke();
       link.activity = Math.max(0, link.activity - 0.018);
     } else {
-      // Liên kết P2P thông thường nền mờ
+      // Default subtle background P2P link
       p2pCtx.beginPath();
       p2pCtx.moveTo(u.x, u.y);
       p2pCtx.lineTo(v.x, v.y);
@@ -1086,7 +1116,7 @@ function renderP2PMap() {
       p2pCtx.lineWidth = 1;
       p2pCtx.stroke();
 
-      // Hạt heartbeat tuần hoàn nhẹ
+      // Periodic heartbeat data pulse
       const t = ((now * 0.03 + link.heartbeatOffset) % 100) / 100;
       const px = u.x + (v.x - u.x) * t;
       const py = u.y + (v.y - u.y) * t;
@@ -1099,7 +1129,7 @@ function renderP2PMap() {
     p2pCtx.restore();
   });
 
-  // 4. Vẽ Cụm Node Validator (Consensus Quorum ở trung tâm)
+  // 4. Draw Validator Consensus Quorum Cluster (Center)
   const val1 = p2pNodes.find(n => n.id === 'val1');
   const val2 = p2pNodes.find(n => n.id === 'val2');
   const val3 = p2pNodes.find(n => n.id === 'val3');
@@ -1115,7 +1145,7 @@ function renderP2PMap() {
     p2pCtx.strokeStyle = isChainTampered ? 'rgba(239, 68, 68, 0.4)' : 'rgba(245, 158, 11, 0.3)';
     p2pCtx.stroke();
 
-    // Nhãn cụm đồng thuận PoS
+    // Proof-of-Stake consensus quorum label
     p2pCtx.fillStyle = '#fcd34d';
     p2pCtx.font = 'bold 8px monospace';
     p2pCtx.textAlign = 'center';
@@ -1123,14 +1153,14 @@ function renderP2PMap() {
     p2pCtx.restore();
   }
 
-  // 5. Vẽ các Node mạng P2P (Peer Nodes)
+  // 5. Draw P2P Peer Nodes
   p2pNodes.forEach(n => {
     p2pCtx.save();
     const isEndpoint = n.id === 'alice' || n.id === 'bob';
     const isVal = n.role === 'validator';
 
     if (n.isOffline) {
-      // Node đã rớt mạng (Byzantine Fault Tolerance)
+      // Offline node (Byzantine Fault Tolerance)
       p2pCtx.beginPath();
       p2pCtx.arc(n.x, n.y, 7, 0, Math.PI * 2);
       p2pCtx.fillStyle = '#1e293b';
@@ -1144,7 +1174,7 @@ function renderP2PMap() {
       p2pCtx.textAlign = 'center';
       p2pCtx.fillText('✕', n.x, n.y + 2.5);
     } else {
-      // Node sống bình thường
+      // Online active peer node
       const radius = isEndpoint ? 13 : (isVal ? 9 : 6);
       p2pCtx.beginPath();
       p2pCtx.arc(n.x, n.y, radius, 0, Math.PI * 2);
@@ -1168,7 +1198,7 @@ function renderP2PMap() {
       p2pCtx.lineWidth = isEndpoint ? 2 : 1.5;
       p2pCtx.stroke();
 
-      // Chữ ID node
+      // Node identifier text
       p2pCtx.fillStyle = '#fcd34d';
       p2pCtx.font = isEndpoint ? 'bold 9px monospace' : '7.5px monospace';
       p2pCtx.textAlign = 'center';
@@ -1251,15 +1281,7 @@ function renderBlockCards() {
     }
     const card = document.createElement('div');
     card.className = `block-card ${isChainTampered ? 'tampered' : ''}`;
-    card.onclick = () => {
-      playSound('click');
-      showCyberToast({
-        title: `KHỐI #${b.index} • ${isChainTampered ? 'CẢNH BÁO GIAN LẬN' : 'XÁC THỰC MẬT MÃ'}`,
-        type: isChainTampered ? 'danger' : 'amber',
-        message: `<strong>Hash:</strong> <code>${b.hash}</code><br><strong>PrevHash:</strong> <code>${b.prevHash}</code><br><strong>Giao dịch:</strong> ${b.data}<br>${isChainTampered ? '❌ Chuỗi bị đứt gãy do không khớp mã băm!' : '✓ Đã liên kết chuỗi bất biến bằng hàm băm SHA-256.'}`,
-        duration: 3500
-      });
-    };
+    card.onclick = () => openBlockInspector(idx);
     card.innerHTML = `
       <div class="block-header">
         <span>#${b.index}</span>
@@ -1306,7 +1328,80 @@ function updateBlockchainHud(msg, isAlert = false) {
 }
 
 // ============================================================================
-// KHỞI ĐỘNG HỆ THỐNG
+// 9. MODALS (BLOCK CRYPTOGRAPHIC INSPECTOR & NETWORK PACKET INSPECTOR)
+// ============================================================================
+let inspectedIdx = 1;
+
+function openBlockInspector(idx = 1) {
+  inspectedIdx = idx;
+  const b = blockchain[idx] || blockchain[1];
+  if (!b) return;
+
+  playSound('click');
+  const modal = document.getElementById('blockInspectorModal');
+  if (!modal) return;
+
+  document.getElementById('inspectIndex').innerText = `#${b.index}`;
+  document.getElementById('inspectTimestamp').innerText = new Date().toISOString();
+  document.getElementById('inspectPrevHash').innerText = b.prevHash;
+  document.getElementById('inspectNonce').innerText = '48201';
+
+  const dataInput = document.getElementById('inspectDataInput');
+  if (dataInput) dataInput.value = b.data;
+
+  updateLiveHashDisplay();
+  modal.style.display = 'flex';
+}
+
+function closeBlockInspector() {
+  playSound('click');
+  const modal = document.getElementById('blockInspectorModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function onInspectDataChange() {
+  playSound('hover');
+  await updateLiveHashDisplay();
+}
+
+async function updateLiveHashDisplay() {
+  const b = blockchain[inspectedIdx];
+  if (!b) return;
+
+  const dataInput = document.getElementById('inspectDataInput');
+  const hashBox = document.getElementById('inspectHashBox');
+  const hashValEl = document.getElementById('inspectHashVal');
+  const statusEl = document.getElementById('inspectHashStatus');
+
+  const curData = dataInput ? dataInput.value : b.data;
+  const newHash = await sha256(`${b.index}|${curData}|${b.prevHash}|48201`);
+
+  if (hashValEl) hashValEl.innerText = newHash;
+
+  const modified = curData !== b.data;
+  if (modified) {
+    if (hashBox) hashBox.classList.add('tampered');
+    if (statusEl) statusEl.innerHTML = `<span style="color: #ef4444;">❌ HASH COMPLETELY CHANGED! Next block will reject due to broken PreviousHash link.</span>`;
+  } else {
+    if (hashBox) hashBox.classList.remove('tampered');
+    if (statusEl) statusEl.innerHTML = `<span style="color: #34d399;">✓ Perfectly matches distributed ledger state.</span>`;
+  }
+}
+
+function openPacketInspector() {
+  playSound('click');
+  const modal = document.getElementById('packetInspectorModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closePacketInspector() {
+  playSound('click');
+  const modal = document.getElementById('packetInspectorModal');
+  if (modal) modal.style.display = 'none';
+}
+
+// ============================================================================
+// SYSTEM INITIALIZATION
 // ============================================================================
 window.addEventListener('load', async () => {
   resizeCanvases();
