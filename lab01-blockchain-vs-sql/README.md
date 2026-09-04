@@ -7,7 +7,7 @@ An interactive visual comparison between **Centralized Client-Server Databases (
 </p>
 
 <p align="center">
-  <a href="demo/index.html">
+  <a href="https://tungcorn.github.io/blockchain-engineering-labs/lab01-blockchain-vs-sql/demo/">
     <img src="https://img.shields.io/badge/LIVE_SIMULATOR-Open_Web_Visualizer-00f0ff?style=for-the-badge&logo=googlechrome&logoColor=black" alt="Open Web Visualizer">
   </a>
   <a href="contracts/SimpleBank.sol">
@@ -20,13 +20,15 @@ An interactive visual comparison between **Centralized Client-Server Databases (
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
-### 1. Web Visualizer (Interactive Demo)
-Open [`demo/index.html`](demo/index.html) in any modern web browser (Chrome, Edge, Firefox), or serve locally:
-```bash
-npx serve demo
-```
+### 1. Web Visualizer (Interactive Live Demo)
+* **Online Deployment**: Open directly in any browser:  
+  **https://tungcorn.github.io/blockchain-engineering-labs/lab01-blockchain-vs-sql/demo/**
+* **Local Run**: Serve locally with Node.js:
+  ```bash
+  npx serve demo
+  ```
 
 ### 2. CLI Cryptography Simulation
 Simulate SHA-256 block hashing, the Avalanche Effect, and ledger tamper detection via CLI:
@@ -36,7 +38,7 @@ node scripts/simulate.js
 
 ---
 
-## ⚖️ Core Architectural Comparison
+## Core Architectural Comparison
 
 | Dimension | Centralized SQL (RDBMS) | Decentralized Blockchain (Solidity) |
 | :--- | :--- | :--- |
@@ -48,12 +50,13 @@ node scripts/simulate.js
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 ├── demo/                       # Interactive side-by-side visualizer (HTML/CSS/JS)
 ├── contracts/                  # Solidity smart contracts (SimpleBank, NotaryRegistry)
 ├── sql/                        # SQL relational schemas and comparison queries
 ├── scripts/                    # Cryptographic simulation scripts (simulate.js)
-└── README.md                   # Project documentation
+├── assets/                     # Architecture diagrams and HD simulation recording
+└── README.md                   # Lab documentation
 ```
