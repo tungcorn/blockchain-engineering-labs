@@ -5,25 +5,13 @@
 [![Solidity](https://img.shields.io/badge/SOLIDITY-^0.8.20-f59e0b?style=for-the-badge&logo=solidity&logoColor=black)](https://soliditylang.org/)
 [![License: MIT](https://img.shields.io/badge/LICENSE-MIT-10b981?style=for-the-badge)](LICENSE)
 
-A hands-on curriculum exploring blockchain systems, consensus protocols, cryptography, smart contracts, and decentralized architecture.
+A hands-on repository exploring blockchain architecture, consensus protocols, cryptography, smart contracts, and decentralized systems.
 
 ---
 
-## Curriculum Roadmap
+## Lab 01: Blockchain vs SQL Visualizer
 
-| Lab | Topic | Focus Area | Status |
-| :--- | :--- | :--- | :---: |
-| **[Lab 01](lab01-blockchain-vs-sql/)** | **Blockchain vs SQL • Architectural Simulation** | Network Topologies, SPOF vs BFT, Data Immutability, SHA-256 Avalanche | Complete |
-| **Lab 02** | **Solidity Fundamentals & Gas Optimization** | EVM Storage Slots, Reentrancy Guards, Custom Errors, Gas Benchmarks | Upcoming |
-| **Lab 03** | **Tokens, Staking Pools & DeFi Primitives** | ERC-20, Staking Rewards Algorithm, Automated Market Makers (AMM) | Planned |
-| **Lab 04** | **NFTs & Decentralized Storage** | ERC-721A, IPFS / Filecoin Pinning, Merkle Tree Whitelist Airdrops | Planned |
-| **Capstone** | **Fullstack Decentralized Application (DApp)** | Next.js, Wagmi/Viem, Hardhat/Foundry, Testnet Deployment | Planned |
-
----
-
-## Featured: Lab 01
-
-### [Lab 01: Blockchain vs SQL Visualizer](lab01-blockchain-vs-sql/)
+### Overview
 An interactive side-by-side simulator contrasting Centralized Client-Server Databases (Star Topology) with Decentralized Peer-to-Peer Blockchains (Gossip Mesh).
 
 <p align="center">
@@ -50,19 +38,19 @@ An interactive side-by-side simulator contrasting Centralized Client-Server Data
 
 ## Getting Started
 
-Clone the repository and explore any lab module:
+### Local Setup
+Clone the repository and run the Lab 01 visualizer locally:
 
 ```bash
 git clone https://github.com/tungcorn/blockchain-engineering-labs.git
-cd blockchain-engineering-labs
+cd blockchain-engineering-labs/lab01-blockchain-vs-sql
 
-# Run Lab 01 interactive visualizer locally
-cd lab01-blockchain-vs-sql
 npx serve demo
 ```
 
-Or open the live deployment directly in your browser:  
-👉 **https://tungcorn.github.io/blockchain-engineering-labs/lab01-blockchain-vs-sql/demo/**
+### Live Browser Deployment
+Open directly without installation:  
+https://tungcorn.github.io/blockchain-engineering-labs/lab01-blockchain-vs-sql/demo/
 
 ---
 
