@@ -155,7 +155,6 @@ function toggleSound() {
   if (soundEnabled) playSound('click');
 }
 
-
 // Helper tính SHA-256 thật bằng Web Crypto
 async function sha256(message) {
   const msgBuffer = new TextEncoder().encode(message);
@@ -164,6 +163,85 @@ async function sha256(message) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// ============================================================================
+// CYBERPUNK HUD TOAST NOTIFICATION SYSTEM (THAY THẾ HOÀN TOÀN WINDOW.ALERT)
+// ============================================================================
+function showCyberToast(options) {
+  const {
+    title = 'THÔNG BÁO HỆ THỐNG',
+    type = 'cyan', // 'cyan', 'amber', 'danger', 'success'
+    message = '',
+    duration = 6500
+  } = options;
+
+  let container = document.getElementById('cyberToastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'cyberToastContainer';
+    container.className = 'cyber-toast-container';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `cyber-toast ${type}`;
+
+  const iconMap = {
+    danger: '⚠️',
+    cyan: '🌐',
+    amber: '⚡',
+    success: '✓'
+  };
+
+  toast.innerHTML = `
+    <div class="toast-header">
+      <div class="toast-title">
+        <span>${iconMap[type] || '🔔'}</span>
+        <span>${title}</span>
+      </div>
+      <button class="toast-close-btn" title="Đóng">&times;</button>
+    </div>
+    <div class="toast-body">${message}</div>
+    <div class="toast-footer">
+      <button class="toast-action-btn">Đã hiểu ✓</button>
+    </div>
+    <div class="toast-progress-bar"></div>
+  `;
+
+  container.appendChild(toast);
+
+  // Hiệu ứng trượt vào
+  requestAnimationFrame(() => {
+    toast.classList.add('show');
+  });
+
+  const closeToast = () => {
+    toast.classList.remove('show');
+    toast.classList.add('hide');
+    setTimeout(() => {
+      if (toast.parentElement) toast.parentElement.removeChild(toast);
+    }, 350);
+  };
+
+  toast.querySelector('.toast-close-btn').addEventListener('click', () => {
+    playSound('click');
+    closeToast();
+  });
+  toast.querySelector('.toast-action-btn').addEventListener('click', () => {
+    playSound('click');
+    closeToast();
+  });
+
+  if (duration > 0) {
+    const progressBar = toast.querySelector('.toast-progress-bar');
+    if (progressBar) {
+      progressBar.style.transition = `width ${duration}ms linear`;
+      requestAnimationFrame(() => {
+        progressBar.style.width = '0%';
+      });
+    }
+    setTimeout(closeToast, duration);
+  }
+}
 
 // ============================================================================
 // 2. CANVAS MẠNG MÁY TÍNH CLIENT - SERVER (SQL RDBMS)
@@ -183,16 +261,16 @@ function initSqlNetwork() {
   if (!sqlCanvas) return;
   const rect = sqlCanvas.parentElement.getBoundingClientRect();
   sqlCanvas.width = rect.width;
-  sqlCanvas.height = 240;
+  sqlCanvas.height = 270;
 
   const cx = sqlCanvas.width / 2;
-  const cy = sqlCanvas.height / 2;
+  const cy = 135;
   sqlServerNode.x = cx;
   sqlServerNode.y = cy;
 
   sqlClientNodes.length = 0;
-  const rx = Math.min(cx, cy) * 0.78;
-  const ry = Math.min(cx, cy) * 0.65;
+  const rx = Math.min(cx * 0.72, 175);
+  const ry = Math.min(cy * 0.62, 75);
   const labels = ['Alice (0x71c)', 'Bob (0x94f)', 'Charlie', 'Dave'];
 
   for (let i = 0; i < 4; i++) {
@@ -428,12 +506,12 @@ function initP2PNetwork() {
   if (!p2pCanvas) return;
   const rect = p2pCanvas.parentElement.getBoundingClientRect();
   p2pCanvas.width = rect.width;
-  p2pCanvas.height = 240;
+  p2pCanvas.height = 270;
 
   const cx = p2pCanvas.width / 2;
-  const cy = p2pCanvas.height / 2;
-  const rx = p2pCanvas.width * 0.4;
-  const ry = p2pCanvas.height * 0.36;
+  const cy = 135;
+  const rx = Math.min(cx * 0.75, 180);
+  const ry = Math.min(cy * 0.62, 75);
 
   p2pNodes = [];
   const nodeCount = 7;
@@ -449,8 +527,8 @@ function initP2PNetwork() {
 
   for (let i = 0; i < nodeCount; i++) {
     const angle = (i / nodeCount) * Math.PI * 2;
-    const jitterX = ((i % 3) - 1) * 12;
-    const jitterY = (((i + 1) % 3) - 1) * 10;
+    const jitterX = ((i % 3) - 1) * 8;
+    const jitterY = (((i + 1) % 3) - 1) * 6;
     p2pNodes.push({
       id: i,
       x: cx + Math.cos(angle) * rx + jitterX,
@@ -547,11 +625,12 @@ function toggleP2PPartition() {
       btn.className = "btn btn-amber";
     }
     updateBlockchainHud(`[BFT SIMULATION] Node C & Node E offline! 5/7 peers remain. Testing mesh resilience...`, true);
-    alert(
-      "[MÔ PHỎNG MẠNG P2P: CHỊU LỖI BYZANTINE (BFT)]\n\n" +
-      "Đã ngắt kết nối Node C và Node E (2/7 node bị rớt mạng).\n\n" +
-      "Hãy thử bấm '⚡ Phát Sóng P2P' để xem: Dù 2 node chết, giao thức Gossip vẫn tự động tìm đường vòng qua các node sống sót để đạt đồng thuận sổ cái mà KHÔNG HỀ BỊ SẬP HỆ THỐNG!"
-    );
+    showCyberToast({
+      title: 'MẠNG P2P: CHỊU LỖI BYZANTINE (BFT)',
+      type: 'amber',
+      message: 'Đã ngắt kết nối Node C và Node E (2/7 node trong mạng bị rớt).\n\nHãy bấm <strong>"⚡ Phát Sóng P2P"</strong>: Giao thức Gossip sẽ tự động định tuyến đường vòng qua các node còn lại để đồng thuận sổ cái mà <strong>KHÔNG HỀ BỊ SẬP HỆ THỐNG!</strong>',
+      duration: 7500
+    });
   } else {
     playSound('restore');
     if (btn) {
@@ -559,6 +638,12 @@ function toggleP2PPartition() {
       btn.className = "btn btn-ghost-cyan";
     }
     updateBlockchainHud(`[P2P MESH HEALTH] All 7 peers online and synchronized.`);
+    showCyberToast({
+      title: 'KHÔI PHỤC TOÀN BỘ PEERS',
+      type: 'success',
+      message: 'Toàn bộ 7/7 Node P2P đã được kích hoạt lại và đồng bộ sổ cái.',
+      duration: 4000
+    });
   }
 }
 
@@ -710,12 +795,12 @@ function executeSqlQuery() {
   if (isSqlServerDown) {
     playSound('alarm');
     updateSqlHud(`[TCP ERROR] connect ECONNREFUSED 192.168.1.10:5432 - Single Point of Failure (SPOF)! System HALTED.`, true);
-    alert(
-      "[LỖI KIẾN TRÚC MẠNG: SINGLE POINT OF FAILURE (SPOF)]\n\n" +
-      "Server cơ sở dữ liệu trung tâm đã bị SẬP!\n" +
-      "Mọi truy vấn UPDATE từ Client đều bị từ chối kết nối (ECONNREFUSED).\n" +
-      "=> Đây chính là điểm yếu chí tử của mô hình Client-Server tập trung so với Blockchain."
-    );
+    showCyberToast({
+      title: 'LỖI MẠNG: SINGLE POINT OF FAILURE',
+      type: 'danger',
+      message: 'Server cơ sở dữ liệu trung tâm đã bị SẬP!\n\nMọi truy vấn UPDATE từ Client bị từ chối kết nối (<code>ECONNREFUSED</code>).\n➜ Đây là điểm yếu chí tử của mô hình Client-Server tập trung so với Blockchain P2P.',
+      duration: 7000
+    });
     return;
   }
 
@@ -735,7 +820,12 @@ function executeSqlQuery() {
 function dbaTamperSql() {
   if (isSqlServerDown) {
     playSound('alarm');
-    alert("Máy chủ đang sập nguồn! DBA cũng không thể kết nối tới SQL database.");
+    showCyberToast({
+      title: 'KẾT NỐI BỊ TỪ CHỐI',
+      type: 'danger',
+      message: 'Máy chủ đang sập nguồn (Offline)! Ngay cả Quản trị viên (DBA) cũng không thể kết nối tới cơ sở dữ liệu.',
+      duration: 5000
+    });
     return;
   }
   playSound('alarm');
@@ -743,12 +833,12 @@ function dbaTamperSql() {
   renderSqlTable('Alice', true);
   updateSqlHud(`[DBA TAMPER] UPDATE accounts SET balance = 999999 WHERE id = 'Alice' (ACCEPTED BY ROOT)`, true);
 
-  alert(
-    "[SQL DBA TAMPER THÀNH CÔNG]\n\n" +
-    "Quản trị viên đã can thiệp vào máy chủ SQL:\n" +
-    "UPDATE accounts SET balance = 999999 WHERE id = 'Alice';\n\n" +
-    "=> Máy chủ trung tâm lưu dữ liệu ngay lập tức! Không có cảnh báo mật mã nào từ mạng máy tính."
-  );
+  showCyberToast({
+    title: 'SQL DBA TAMPER THÀNH CÔNG',
+    type: 'danger',
+    message: 'Quản trị viên (DBA) đã can thiệp trực tiếp vào máy chủ SQL:\n<code>UPDATE accounts SET balance = 999999 WHERE id = \'Alice\';</code>\n\n➜ <strong>Máy chủ trung tâm ghi đè tức thì!</strong> Không hề có bất kỳ cảnh báo mật mã nào từ mạng máy tính.',
+    duration: 7500
+  });
 }
 
 function toggleSqlServerCrash() {
@@ -761,11 +851,12 @@ function toggleSqlServerCrash() {
       btn.className = "btn btn-cyan";
     }
     updateSqlHud(`[SPOF DISASTER] Central DB crashed! All TCP sockets closed with ECONNREFUSED.`, true);
-    alert(
-      "[MÔ PHỎNG SỰ CỐ MẠNG: SERVER SẬP (SPOF)]\n\n" +
-      "Bạn vừa ngắt kết nối máy chủ cơ sở dữ liệu trung tâm (Port 5432).\n" +
-      "Hãy thử bấm '▶ Thực Hiện UPDATE' để xem phản ứng của hệ thống!"
-    );
+    showCyberToast({
+      title: 'SỰ CỐ MẠNG: SERVER SẬP (SPOF)',
+      type: 'danger',
+      message: 'Đã ngắt kết nối máy chủ cơ sở dữ liệu trung tâm (Port 5432).\n\nHãy thử bấm <strong>"▶ Thực Hiện UPDATE"</strong> để thấy toàn bộ các client bị tê liệt hoàn toàn (Single Point of Failure)!',
+      duration: 7000
+    });
   } else {
     playSound('restore');
     if (btn) {
@@ -773,6 +864,12 @@ function toggleSqlServerCrash() {
       btn.className = "btn btn-ghost-danger";
     }
     updateSqlHud(`[RECOVERY] Central DB restarted on Port 5432. All client sockets reconnected.`);
+    showCyberToast({
+      title: 'MÁY CHỦ ĐÃ ĐƯỢC KHÔI PHỤC',
+      type: 'success',
+      message: 'Máy chủ cơ sở dữ liệu trung tâm đã khởi động lại trên Port 5432. Kết nối TCP của các client đã thông suốt.',
+      duration: 4500
+    });
   }
 }
 
@@ -865,7 +962,12 @@ async function addBlockchainTransaction() {
   playSound('click');
   if (isChainTampered) {
     playSound('alarm');
-    alert("Chuỗi hiện đang bị đứt gãy do phát hiện gian lận! Vui lòng khôi phục chuỗi đồng thuận trước.");
+    showCyberToast({
+      title: 'GIAO DỊCH BỊ TỪ CHỐI',
+      type: 'danger',
+      message: 'Chuỗi hiện đang bị đứt gãy do phát hiện gian lận! Vui lòng bấm <strong>"🛡️ Khôi Phục Đồng Thuận"</strong> trước.',
+      duration: 5000
+    });
     return;
   }
 
@@ -913,18 +1015,24 @@ async function toggleTamperBlockchain() {
     updateBlockchainHud(`[BFT ALERT] Block #1 Tampered! PrevHash mismatch at Block #2! Chain rejected!`, true);
     if (btn) btn.innerHTML = "🛡️ Khôi Phục Đồng Thuận";
 
-    alert(
-      "[CẢNH BÁO BẢO MẬT: TAMPER DETECTED!]\n\n" +
-      "Hacker đã sửa dữ liệu tại Khối #1.\n" +
-      "Mã Hash của Khối #1 thay đổi -> Không còn khớp với PrevHash của Khối #2!\n" +
-      "=> Toàn bộ chuỗi khối bị đứt gãy. Các Node khác trong mạng P2P lập tức TỪ CHỐI khối giả mạo này!"
-    );
+    showCyberToast({
+      title: 'CẢNH BÁO: PHÁT HIỆN GIAN LẬN KHỐI (TAMPER)',
+      type: 'danger',
+      message: 'Hacker vừa cố tình sửa số dư tại Khối #1 thành <strong>9999 ETH</strong>.\n\n➜ Mã Hash Khối #1 thay đổi hoàn toàn ➜ Đứt gãy liên kết với Khối #2 (<code>previousHash != hash</code>)!\n➜ Toàn bộ các node P2P lập tức <strong>TỪ CHỐI</strong> chuỗi giả mạo này!',
+      duration: 8500
+    });
   } else {
     playSound('restore');
     isChainTampered = false;
     await initBlockchain();
     updateBlockchainHud(`[CONSENSUS RESTORED] Canonical chain synchronized across 7 peers.`);
     if (btn) btn.innerHTML = "💥 Tấn Công Sửa Khối";
+    showCyberToast({
+      title: 'ĐỒNG THUẬN ĐÃ ĐƯỢC KHÔI PHỤC',
+      type: 'success',
+      message: 'Chuỗi canonical hợp lệ đã được đồng bộ lại thành công trên toàn bộ các node ngang hàng.',
+      duration: 4500
+    });
   }
 }
 
