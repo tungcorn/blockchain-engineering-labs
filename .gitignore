@@ -1,0 +1,8 @@
+node_modules/
+*/node_modules/
+*/scripts/node_modules/
+*/scripts/frames/
+*.log
+.DS_Store
+.vscode/
+.idea/
