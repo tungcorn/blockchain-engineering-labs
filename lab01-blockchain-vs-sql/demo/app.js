@@ -328,16 +328,18 @@ function initNetworkTopologies(width, height) {
 // ============================================================================
 // 4. SQL SIMULATION CONTROLLER (COMMITS TO CENTRAL SERVER)
 // ============================================================================
+// 4. SQL & BLOCKCHAIN SIMULATION CONTROLLERS (SIMPLIFIED & HIGH-IMPACT)
+// ============================================================================
+
 function executeSqlQuery() {
-  playSound('click');
   if (isSqlServerDown) {
     playSound('alarm');
     updateSqlHud(`[TCP ERROR] connect ECONNREFUSED 192.168.1.10:5432 - Single Point of Failure (SPOF)!`, true);
     showCyberToast({
       title: 'LỖI MẠNG: SINGLE POINT OF FAILURE',
       type: 'danger',
-      message: 'Server cơ sở dữ liệu trung tâm đã bị SẬP!\nClient không thể kết nối (<code>ECONNREFUSED</code>). Toàn bộ hệ thống bị tê liệt hoàn toàn.',
-      duration: 6000
+      message: 'Server cơ sở dữ liệu trung tâm đã bị SẬP! Client không thể kết nối (ECONNREFUSED). Toàn bộ hệ thống bị tê liệt hoàn toàn.',
+      duration: 4000
     });
     return;
   }
@@ -349,34 +351,38 @@ function executeSqlQuery() {
   const alice = sqlClients.find(c => c.id === 'alice');
   const bob = sqlClients.find(c => c.id === 'bob');
 
-  // Giai đoạn 1: Gói tin TCP SYN/PSH từ Alice -> Central DB Server (190ms)
   sqlPackets.push({
     fromX: alice.x, fromY: alice.y,
     toX: sqlServer.x, toY: sqlServer.y - sqlServer.h / 2,
     progress: 0,
-    duration: 200,
+    duration: 180,
     startTime: performance.now(),
     color: '#00f0ff',
-    label: 'TCP [PSH, ACK] UPDATE',
+    label: 'TCP [PSH] UPDATE -50 ETH',
     onComplete: () => {
-      // Server tiếp nhận & ghi đè bộ nhớ tại chỗ
       sqlServer.pulseGlow = 1;
       sqlServer.memoryActivity = 1;
-      updateSqlHud(`[DB ENGINE] In-place UPDATE committed at 192.168.1.10:5432 in 0.82ms.`);
 
-      // Giai đoạn 2: Gói tin phản hồi TCP ACK từ Central DB Server -> Bob (190ms)
+      // Cập nhật số dư ghi đè tại chỗ (In-place mutation)
+      sqlAccounts.Alice = 450;
+      sqlAccounts.Bob = 250;
+      renderSqlTable();
+
+      const metric = document.getElementById('sqlMetricCounter');
+      if (metric) metric.innerHTML = '<span class="done-tag cyan">COMMITTED</span> 0.82 ms';
+
       sqlPackets.push({
         fromX: sqlServer.x, fromY: sqlServer.y + sqlServer.h / 2,
         toX: bob.x, toY: bob.y,
         progress: 0,
-        duration: 200,
+        duration: 180,
         startTime: performance.now(),
         color: '#00f0ff',
-        label: 'TCP [ACK] OK (0.82ms)',
+        label: 'TCP [ACK] +50 ETH',
         onComplete: () => {
           bob.pulse = 1;
           isSqlRunning = false;
-          updateSqlHud(`[COMMITTED] 1 Query applied directly in 0.82ms. Balance updated.`);
+          updateSqlHud(`[COMMITTED] 1 Query applied directly via TCP in 0.82ms. In-place state updated.`);
           updateResultsTable('sql', '0.82 ms', '1 Central DB Core', 'MUTABLE (In-place Overwrite)');
         }
       });
@@ -384,92 +390,14 @@ function executeSqlQuery() {
   });
 }
 
-function dbaTamperSql() {
-  if (isSqlServerDown) {
-    playSound('alarm');
-    showCyberToast({
-      title: 'KẾT NỐI BỊ TỪ CHỐI',
-      type: 'danger',
-      message: 'Máy chủ đang sập nguồn. Ngay cả DBA cũng không thể kết nối.',
-      duration: 4000
-    });
-    return;
-  }
-  playSound('alarm');
-  const dba = sqlClients.find(c => c.id === 'dba');
-
-  // DBA gửi lệnh can thiệp ngầm trực tiếp qua SSH port 22 vào bộ nhớ DB
-  sqlPackets.push({
-    fromX: dba.x, fromY: dba.y,
-    toX: sqlServer.x + 30, toY: sqlServer.y - sqlServer.h / 2,
-    progress: 0,
-    duration: 220,
-    startTime: performance.now(),
-    color: '#ef4444',
-    label: 'DBA ROOT OVERWRITE',
-    onComplete: () => {
-      sqlServer.pulseGlow = 1.5;
-      sqlServer.memoryActivity = 2; // Glitch đỏ báo hiệu sửa trộm
-      updateSqlHud(`[DBA TAMPER] UPDATE accounts SET balance = 999999 WHERE id = 'Alice' (ACCEPTED BY ROOT)`, true);
-      showCyberToast({
-        title: 'SQL DBA TAMPER THÀNH CÔNG',
-        type: 'danger',
-        message: 'Quản trị viên (DBA 192.168.1.99) vừa can thiệp vào ô nhớ máy chủ:\n<code>UPDATE accounts SET balance = 999999;</code>\n\n➜ Dữ liệu bị ghi đè tức thì trong im lặng mà không qua bất kỳ kiểm chứng mật mã hay đồng thuận phân tán nào!',
-        duration: 7500
-      });
-      updateResultsTable('sql', '0.82 ms', '1 Central Core', 'TAMPERED (Silently Overwritten!)');
-    }
-  });
-}
-
-function toggleSqlServerCrash() {
-  isSqlServerDown = !isSqlServerDown;
-  const btn = document.getElementById('btnCrashSqlServer');
-  if (isSqlServerDown) {
-    playSound('alarm');
-    if (btn) {
-      btn.innerHTML = "🟢 Bật Lại Server";
-      btn.className = "btn-action cyan";
-    }
-    updateSqlHud(`[SPOF CRASH] Central DB crashed! All TCP sockets closed with ECONNREFUSED.`, true);
-    showCyberToast({
-      title: 'SỰ CỐ MẠNG: SERVER SẬP (SPOF)',
-      type: 'danger',
-      message: 'Máy chủ DB trung tâm (192.168.1.10) đã bị ngắt kết nối.\nBấm "▶ SQL Direct Commit" để thấy toàn bộ client bị tê liệt hoàn toàn (Single Point of Failure)!',
-      duration: 6500
-    });
-    updateResultsTable('sql', 'TIMEOUT', '0 (OFFLINE)', 'SYSTEM HALTED (SPOF)');
-  } else {
-    playSound('restore');
-    if (btn) {
-      btn.innerHTML = "🔌 Sập Server (SPOF)";
-      btn.className = "btn-action ghost";
-    }
-    sqlServer.memoryActivity = 0;
-    updateSqlHud(`[RECOVERY] Central DB restarted on Port 5432. All client sockets reconnected.`);
-    showCyberToast({
-      title: 'MÁY CHỦ ĐÃ KHÔI PHỤC',
-      type: 'success',
-      message: 'Máy chủ SQL trung tâm đã sẵn sàng tiếp nhận truy vấn trở lại.',
-      duration: 4000
-    });
-    updateResultsTable('sql', '0.82 ms', '1 Central DB Core', 'MUTABLE (In-place Overwrite)');
-  }
-}
-
-
-// ============================================================================
-// 5. BLOCKCHAIN SIMULATION CONTROLLER (SPREADS IN GOSSIP RINGS)
-// ============================================================================
-function addBlockchainTransaction() {
-  playSound('click');
+async function addBlockchainTransaction() {
   if (isChainTampered) {
     playSound('alarm');
     showCyberToast({
       title: 'GIAO DỊCH BỊ TỪ CHỐI',
       type: 'danger',
-      message: 'Chuỗi đang bị đứt gãy do phát hiện gian lận! Hãy bấm <strong>"Khôi Phục Đồng Thuận"</strong> trước.',
-      duration: 5000
+      message: 'Chuỗi đang bị đứt gãy do phát hiện gian lận! Hãy bấm "Khôi Phục Dữ Liệu" trước.',
+      duration: 3500
     });
     return;
   }
@@ -477,21 +405,13 @@ function addBlockchainTransaction() {
   isGossipRunning = true;
   updateBlockchainHud(`[P2P GOSSIP] Alice signs Tx (ECDSA secp256k1). Radiating concentric gossip wavefront...`);
 
-  // Reset trạng thái sáng của các node
-  p2pNodes.forEach(n => {
-    n.litGlow = 0;
-  });
-  p2pLinks.forEach(l => {
-    l.isCanonical = false;
-    l.activity = 0;
-  });
-  p2pGossipPackets = [];
+  p2pNodes.forEach(n => { n.litGlow = 0; });
+  p2pLinks.forEach(l => { l.isCanonical = false; l.activity = 0; });
 
   const alice = p2pNodes.find(n => n.id === 'alice');
   const bob = p2pNodes.find(n => n.id === 'bob');
   if (!alice || !bob) return;
 
-  // Tạo đợt sóng lan tỏa đồng tâm (Concentric ripple wave)
   const maxDist = Math.hypot(bob.x - alice.x, bob.y - alice.y) * 1.12;
   const waveDuration = 1350;
   const startTime = performance.now();
@@ -510,21 +430,17 @@ function addBlockchainTransaction() {
     const progress = Math.min(1, elapsed / waveDuration);
     const curRadius = progress * maxDist;
 
-    // Phát âm thanh hợp âm Gossip theo từng đợt sóng
     const currentHop = Math.floor(progress * 8);
     if (currentHop !== hop) {
       hop = currentHop;
       playSound('gossip_ripple', hop);
     }
 
-    // Kích hoạt các node và liên kết khi sóng chạm tới
     p2pNodes.forEach(node => {
-      if (node.isOffline) return; // Node đã sập do test BFT
+      if (node.isOffline) return;
       const d = Math.hypot(node.x - alice.x, node.y - alice.y);
       if (d <= curRadius && node.litGlow === 0) {
         node.litGlow = 1;
-
-        // Bắn các gói tin gossip dọc theo các liên kết nối với node này
         p2pLinks.forEach(link => {
           if ((link.u.id === node.id && !link.v.isOffline) || (link.v.id === node.id && !link.u.isOffline)) {
             link.activity = 1;
@@ -539,7 +455,21 @@ function addBlockchainTransaction() {
       isGossipRunning = false;
       playSound('block_mined');
 
-      // Đánh dấu đường đi đồng thuận chính tắc (Canonical Consensus Route)
+      // Nối thêm khối #3 nếu chưa có
+      if (blockchain.length === 3) {
+        const lastBlock = blockchain[blockchain.length - 1];
+        sha256(`3|Alice->Bob 50 ETH|${lastBlock.hash}|58392`).then(b3Hash => {
+          blockchain.push({
+            index: 3,
+            data: "Alice->Bob 50 ETH",
+            hash: b3Hash.slice(0, 8),
+            fullHash: b3Hash,
+            prevHash: lastBlock.hash
+          });
+          renderBlockCards();
+        });
+      }
+
       const canonicalRoute = [
         ['alice', 'p11'], ['p11', 'val2'], ['val2', 'p14'], ['p14', 'bob']
       ];
@@ -547,6 +477,9 @@ function addBlockchainTransaction() {
         const link = p2pLinks.find(l => (l.u.id === uId && l.v.id === vId) || (l.u.id === vId && l.v.id === uId));
         if (link) link.isCanonical = true;
       });
+
+      const metric = document.getElementById('solidityMetricCounter');
+      if (metric) metric.innerHTML = '<span class="done-tag amber">MINED</span> 1,420 ms';
 
       if (isP2PPartitioned) {
         updateBlockchainHud(`[BFT CONSENSUS] 30% peers offline, but Gossip wave rerouted to 10,201 active peers. Mined!`);
@@ -561,32 +494,53 @@ function addBlockchainTransaction() {
   requestAnimationFrame(animateGossip);
 }
 
-function toggleTamperBlockchain() {
-  const btn = document.getElementById('btnTamperBlockchain');
-  if (!isChainTampered) {
+function startRaceSimulation() {
+  playSound('click');
+  executeSqlQuery();
+  addBlockchainTransaction();
+}
+
+function toggleSqlServerCrash() {
+  isSqlServerDown = !isSqlServerDown;
+  const btn = document.getElementById('btnCrashSqlServer');
+
+  if (isSqlServerDown) {
     playSound('alarm');
-    isChainTampered = true;
-    updateBlockchainHud(`[BFT SECURITY ALERT] Block #1 Tampered! PrevHash mismatch at Block #2! Chain rejected!`, true);
-    if (btn) btn.innerHTML = "🛡️ Khôi Phục Đồng Thuận";
+    if (btn) {
+      btn.innerHTML = "🟢 Bật Lại Server";
+      btn.className = "btn-action danger";
+    }
+    const metric = document.getElementById('sqlMetricCounter');
+    if (metric) metric.innerHTML = '<span class="done-tag" style="background: rgba(239,68,68,0.2); color:#ef4444;">OFFLINE</span> TIMEOUT';
+
+    updateSqlHud(`[SPOF CRASH] Central DB offline. All client sockets closed with ECONNREFUSED.`, true);
+    renderSqlTable();
     showCyberToast({
-      title: 'CẢNH BÁO: PHÁT HIỆN GIAN LẬN KHỐI (TAMPER)',
+      title: 'SỰ CỐ MẠNG: SERVER SẬP (SPOF)',
       type: 'danger',
-      message: 'Hacker vừa cố tình sửa số dư tại Khối #1 thành 9999 ETH.\n\n➜ Mã băm thay đổi ➜ Không khớp PreviousHash của Khối #2!\n➜ Toàn bộ các node P2P lập tức <strong>TỪ CHỐI</strong> chuỗi giả mạo này!',
-      duration: 8500
+      message: 'Máy chủ DB trung tâm (192.168.1.10) đã bị ngắt kết nối! Toàn bộ client bị tê liệt (Single Point of Failure).',
+      duration: 4500
     });
-    updateResultsTable('chain', 'REJECTED', '14,574 Peers', 'INVALID CHAIN (Tamper Detected!)');
+    updateResultsTable('sql', 'TIMEOUT', '0 (OFFLINE)', 'SYSTEM HALTED (SPOF)');
   } else {
     playSound('restore');
-    isChainTampered = false;
-    updateBlockchainHud(`[CANONICAL RESTORED] Canonical chain synchronized across 14,574 peers.`);
-    if (btn) btn.innerHTML = "💥 Tấn Công Sửa Khối";
+    if (btn) {
+      btn.innerHTML = "🔌 Sập Server (SPOF Test)";
+      btn.className = "btn-action cyan";
+    }
+    const metric = document.getElementById('sqlMetricCounter');
+    if (metric) metric.innerHTML = '<span class="done-tag cyan">READY</span> 0.82 ms';
+
+    sqlServer.memoryActivity = 0;
+    renderSqlTable();
+    updateSqlHud(`[RECOVERY] Central DB restarted on Port 5432. All client sockets reconnected.`);
     showCyberToast({
-      title: 'ĐỒNG THUẬN ĐÃ KHÔI PHỤC',
+      title: 'MÁY CHỦ ĐÃ KHÔI PHỤC',
       type: 'success',
-      message: 'Chuỗi khối hợp lệ đã được đồng bộ lại thành công trên toàn bộ mạng lưới.',
-      duration: 4000
+      message: 'Máy chủ SQL trung tâm đã sẵn sàng tiếp nhận truy vấn trở lại.',
+      duration: 3000
     });
-    updateResultsTable('chain', '1,420 ms', '14,574 Peers', 'IMMUTABLE ✓ (SHA-256)');
+    updateResultsTable('sql', '0.82 ms', '1 Central DB Core', 'MUTABLE (In-place Overwrite)');
   }
 }
 
@@ -610,14 +564,14 @@ function toggleP2PPartition() {
     showCyberToast({
       title: 'MẠNG P2P: CHỊU LỖI BYZANTINE (BFT)',
       type: 'amber',
-      message: 'Đã ngắt kết nối ngẫu nhiên 30% node trong toàn bộ mạng lưới.\n\nHãy bấm "⚡ Phát Sóng P2P": Sóng Gossip vẫn tự tìm đường vòng qua các node sống sót để đạt đồng thuận sổ cái mà <strong>KHÔNG HỀ BỊ SẬP HỆ THỐNG!</strong>',
-      duration: 7500
+      message: 'Đã ngắt kết nối 30% node. Bấm "Chạy Đua": Sóng Gossip vẫn tự tìm đường vòng qua các node sống sót để chốt khối mà không hề bị sập!',
+      duration: 5500
     });
   } else {
     playSound('restore');
     if (btn) {
-      btn.innerHTML = "📶 Tắt 30% Node (BFT)";
-      btn.className = "btn-action ghost";
+      btn.innerHTML = "📶 Rớt 30% Node (BFT Test)";
+      btn.className = "btn-action amber";
     }
 
     p2pNodes.forEach(n => { n.isOffline = false; });
@@ -626,15 +580,115 @@ function toggleP2PPartition() {
       title: 'KHÔI PHỤC TOÀN MẠNG',
       type: 'success',
       message: 'Toàn bộ 14,574 node P2P đã được bật lại và đồng bộ.',
-      duration: 4000
+      duration: 3000
     });
   }
 }
 
-function startRaceSimulation() {
-  playSound('click');
-  executeSqlQuery();
-  addBlockchainTransaction();
+function toggleTamperTest() {
+  const btn = document.getElementById('btnTamper');
+  isChainTampered = !isChainTampered;
+
+  if (isChainTampered) {
+    playSound('alarm');
+    if (btn) btn.innerHTML = "🛡️ Khôi Phục Dữ Liệu";
+
+    // 1. SQL side: DBA alters Alice's balance silently
+    sqlAccounts.Alice = 999999;
+    sqlServer.memoryActivity = 2;
+    renderSqlTable();
+    updateSqlHud(`[DBA TAMPER] UPDATE accounts SET balance = 999999 (ACCEPTED SILENTLY BY ROOT)`, true);
+    updateResultsTable('sql', '0.82 ms', '1 Central Core', 'TAMPERED (Silently Altered!)');
+
+    // 2. Blockchain side: Block #1 is tampered with fake data
+    if (blockchain[1]) {
+      blockchain[1].data = "Deposit 9,999 ETH (FAKE)";
+      blockchain[1].hash = "bad_c0de";
+    }
+    renderBlockCards();
+    updateBlockchainHud(`[TAMPER DETECTED] Block #1 modified! PrevHash mismatch at Block #2! Chain rejected!`, true);
+    updateResultsTable('chain', 'REJECTED', '14,574 Peers', 'INVALID CHAIN (Tamper Detected!)');
+
+    showCyberToast({
+      title: 'KỊCH BẢN THỬ GIAN LẬN (TAMPER)',
+      type: 'danger',
+      message: '<strong>• SQL:</strong> Quản trị viên (DBA) lén sửa số dư thành 999,999 ETH mà hệ thống không hề hay biết!<br><strong>• Blockchain:</strong> Hacker sửa khối #1 ➜ Toàn mạng phát hiện sai lệch hàm băm và <strong>TỪ CHỐI</strong>!',
+      duration: 6000
+    });
+  } else {
+    playSound('restore');
+    if (btn) btn.innerHTML = "⚠️ Thử Sửa Trộm (Tamper Test)";
+
+    sqlAccounts.Alice = 450;
+    sqlServer.memoryActivity = 0;
+    renderSqlTable();
+    updateSqlHud(`[CANONICAL] SQL state synchronized.`);
+    updateResultsTable('sql', '0.82 ms', '1 Central DB Core', 'MUTABLE (In-place Overwrite)');
+
+    initBlockchainLedger();
+    updateBlockchainHud(`[CANONICAL RESTORED] Canonical chain synchronized across 14,574 peers.`);
+    updateResultsTable('chain', '1,420 ms', '14,574 Peers', 'IMMUTABLE ✓ (SHA-256)');
+
+    showCyberToast({
+      title: 'ĐÃ KHÔI PHỤC NGUYÊN VẸN',
+      type: 'success',
+      message: 'Dữ liệu của cả hai hệ thống đã được hoàn nguyên về trạng thái chuẩn.',
+      duration: 3000
+    });
+  }
+}
+
+function resetDemo() {
+  playSound('restore');
+  isSqlServerDown = false;
+  isP2PPartitioned = false;
+  isChainTampered = false;
+
+  sqlAccounts = { Alice: 500, Bob: 200, Charlie: 100 };
+  sqlServer.memoryActivity = 0;
+  sqlPackets = [];
+
+  p2pNodes.forEach(n => { n.isOffline = false; n.litGlow = 0; });
+  p2pLinks.forEach(l => { l.isCanonical = false; l.activity = 0; });
+
+  const btnCrash = document.getElementById('btnCrashSqlServer');
+  if (btnCrash) {
+    btnCrash.innerHTML = "🔌 Sập Server (SPOF Test)";
+    btnCrash.className = "btn-action cyan";
+  }
+
+  const btnBft = document.getElementById('btnPartitionP2P');
+  if (btnBft) {
+    btnBft.innerHTML = "📶 Rớt 30% Node (BFT Test)";
+    btnBft.className = "btn-action amber";
+  }
+
+  const btnTamper = document.getElementById('btnTamper');
+  if (btnTamper) {
+    btnTamper.innerHTML = "⚠️ Thử Sửa Trộm (Tamper Test)";
+  }
+
+  const sqlMetric = document.getElementById('sqlMetricCounter');
+  if (sqlMetric) sqlMetric.innerHTML = '<span class="done-tag cyan">READY</span> 0.82 ms';
+
+  const solMetric = document.getElementById('solidityMetricCounter');
+  if (solMetric) solMetric.innerHTML = '<span class="done-tag amber">READY</span> 1,420 ms';
+
+  updateResultsTable('sql', '0.82 ms', '1 Central DB Core', 'MUTABLE (Admin Overwrite)');
+  updateResultsTable('chain', '1,420 ms', '14,574 Nodes', 'IMMUTABLE (SHA-256)');
+
+  updateSqlHud(`[TCP Port 5432] Direct socket stream to Central DB server (0.82ms)`);
+  updateBlockchainHud(`[DevP2P Mesh] Concentric Gossip wavefront propagating across peer network`);
+
+  renderSqlTable();
+  initBlockchainLedger();
+
+  showCyberToast({
+    title: 'ĐÃ ĐẶT LẠI DEMO',
+    type: 'success',
+    message: 'Toàn bộ trạng thái mạng và dữ liệu đã được làm mới, sẵn sàng chạy kịch bản mới.',
+    duration: 2500
+  });
 }
 
 
@@ -1144,7 +1198,6 @@ function mainRenderLoop() {
 // ============================================================================
 let sqlAccounts = { Alice: 500, Bob: 200, Charlie: 100 };
 let blockchain = [];
-let queryCount = 15773;
 
 function renderSqlTable() {
   const tbody = document.getElementById('sqlTableBody');
@@ -1153,10 +1206,18 @@ function renderSqlTable() {
 
   for (const [name, balance] of Object.entries(sqlAccounts)) {
     const tr = document.createElement('tr');
+    let statusHtml = '<span style="color: #38bdf8;">In-place Overwrite</span>';
+    if (isSqlServerDown) {
+      statusHtml = '<span style="color: #f87171;">OFFLINE (ECONNREFUSED)</span>';
+    } else if (isChainTampered && name === 'Alice') {
+      statusHtml = '<span style="color: #f87171; font-weight: 700;">⚠️ SILENTLY ALTERED</span>';
+      tr.className = 'tampered';
+    }
+
     tr.innerHTML = `
       <td>0x${name}</td>
       <td><strong>${balance.toLocaleString()} ETH</strong></td>
-      <td>${new Date().toLocaleTimeString()}</td>
+      <td>${statusHtml}</td>
     `;
     tbody.appendChild(tr);
   }
@@ -1190,7 +1251,15 @@ function renderBlockCards() {
     }
     const card = document.createElement('div');
     card.className = `block-card ${isChainTampered ? 'tampered' : ''}`;
-    card.onclick = () => openBlockInspector(idx);
+    card.onclick = () => {
+      playSound('click');
+      showCyberToast({
+        title: `KHỐI #${b.index} • ${isChainTampered ? 'CẢNH BÁO GIAN LẬN' : 'XÁC THỰC MẬT MÃ'}`,
+        type: isChainTampered ? 'danger' : 'amber',
+        message: `<strong>Hash:</strong> <code>${b.hash}</code><br><strong>PrevHash:</strong> <code>${b.prevHash}</code><br><strong>Giao dịch:</strong> ${b.data}<br>${isChainTampered ? '❌ Chuỗi bị đứt gãy do không khớp mã băm!' : '✓ Đã liên kết chuỗi bất biến bằng hàm băm SHA-256.'}`,
+        duration: 3500
+      });
+    };
     card.innerHTML = `
       <div class="block-header">
         <span>#${b.index}</span>
@@ -1235,91 +1304,6 @@ function updateBlockchainHud(msg, isAlert = false) {
   hud.className = `network-hud amber ${isAlert ? 'alert' : ''}`;
   hud.innerHTML = `<span class="hud-prompt">&gt;</span> <span class="hud-log">${msg}</span>`;
 }
-
-function switchTab(tabId) {
-  playSound('click');
-  document.querySelectorAll('.drawer-tab-btn').forEach(btn => btn.classList.remove('active'));
-  document.querySelectorAll('.drawer-content').forEach(c => c.classList.remove('active'));
-
-  event.target.classList.add('active');
-  const target = document.getElementById(`tab-${tabId}`);
-  if (target) target.classList.add('active');
-}
-
-
-// ============================================================================
-// 9. MODALS (BLOCK INSPECTOR & WIRESHARK SNIFFER)
-// ============================================================================
-let inspectedIdx = 1;
-
-function openBlockInspector(idx = 1) {
-  inspectedIdx = idx;
-  const b = blockchain[idx] || blockchain[1];
-  if (!b) return;
-
-  playSound('click');
-  const modal = document.getElementById('blockInspectorModal');
-  if (!modal) return;
-
-  document.getElementById('inspectIndex').innerText = `#${b.index}`;
-  document.getElementById('inspectTimestamp').innerText = new Date().toISOString();
-  document.getElementById('inspectPrevHash').innerText = b.prevHash;
-  document.getElementById('inspectNonce').innerText = '48201';
-
-  const dataInput = document.getElementById('inspectDataInput');
-  if (dataInput) dataInput.value = b.data;
-
-  updateLiveHashDisplay();
-  modal.style.display = 'flex';
-}
-
-function closeBlockInspector() {
-  playSound('click');
-  const modal = document.getElementById('blockInspectorModal');
-  if (modal) modal.style.display = 'none';
-}
-
-async function onInspectDataChange() {
-  playSound('hover');
-  await updateLiveHashDisplay();
-}
-
-async function updateLiveHashDisplay() {
-  const b = blockchain[inspectedIdx];
-  if (!b) return;
-
-  const dataInput = document.getElementById('inspectDataInput');
-  const hashBox = document.getElementById('inspectHashBox');
-  const hashValEl = document.getElementById('inspectHashVal');
-  const statusEl = document.getElementById('inspectHashStatus');
-
-  const curData = dataInput ? dataInput.value : b.data;
-  const newHash = await sha256(`${b.index}|${curData}|${b.prevHash}|48201`);
-
-  if (hashValEl) hashValEl.innerText = newHash;
-
-  const modified = curData !== b.data;
-  if (modified) {
-    if (hashBox) hashBox.classList.add('tampered');
-    if (statusEl) statusEl.innerHTML = `<span style="color: #ef4444;">❌ HASH BỊ THAY ĐỔI HOÀN TOÀN! Khối kế tiếp sẽ từ chối vì PreviousHash sai lệch.</span>`;
-  } else {
-    if (hashBox) hashBox.classList.remove('tampered');
-    if (statusEl) statusEl.innerHTML = `<span style="color: #34d399;">✓ Khớp hoàn toàn với bản ghi sổ cái phân tán.</span>`;
-  }
-}
-
-function openPacketInspector() {
-  playSound('click');
-  const modal = document.getElementById('packetInspectorModal');
-  if (modal) modal.style.display = 'flex';
-}
-
-function closePacketInspector() {
-  playSound('click');
-  const modal = document.getElementById('packetInspectorModal');
-  if (modal) modal.style.display = 'none';
-}
-
 
 // ============================================================================
 // KHỞI ĐỘNG HỆ THỐNG
