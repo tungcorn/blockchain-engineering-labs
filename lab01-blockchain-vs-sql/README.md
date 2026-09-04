@@ -3,7 +3,7 @@
 An interactive visual comparison between **Centralized Client-Server Databases (SQL)** and **Decentralized Peer-to-Peer Blockchains (Solidity)**.
 
 <p align="center">
-  <img src="assets/architecture-simulation.svg" alt="Blockchain vs SQL Architecture Simulation" width="100%">
+  <img src="assets/demo-simulation.gif" alt="Blockchain vs SQL Architecture Live Simulation" width="100%">
 </p>
 
 <p align="center">
