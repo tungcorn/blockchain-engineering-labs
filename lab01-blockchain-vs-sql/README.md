@@ -58,13 +58,17 @@ npx serve demo
 - **Cột Trái (SQL - Màu Cyan)**:
   - Xem mô hình mạng hình sao (Star Topology) gửi gói tin TCP đến máy chủ trung tâm.
   - Bấm `▶ Thực Hiện UPDATE` để thấy việc ghi đè số dư tức thì trong bảng.
-  - Bấm `⚠️ DBA Sửa Trộm` để thấy Admin có thể lén đổi số dư mà hệ thống không hề báo lỗi.
+  - Bấm `⚠️ DBA Sửa Trộm` để thấy Admin có thể lén đổi số dư mà hệ thống không hề báo lỗi mật mã.
+  - Bấm `🔌 Sập Server (SPOF)` để mô phỏng máy chủ trung tâm bị sập: Mọi kết nối bị lỗi `ECONNREFUSED` (Minh họa trực quan Single Point of Failure trong Mạng máy tính).
 - **Cột Phải (Solidity Blockchain - Màu Amber)**:
   - Xem mạng P2P Mesh phát sóng giao dịch theo các vòng sóng **Gossip Protocol**.
   - Bấm `⚡ Phát Sóng P2P` để tạo giao dịch mới, tính mã băm SHA-256 thật và gắn thêm 1 khối vào chuỗi.
   - Bấm `💥 Tấn Công Sửa Khối` để giả lập hacker sửa khối cũ: Toàn bộ chuỗi khối lập tức chuyển sang **Màu đỏ neon (Đứt gãy liên kết)** và các node từ chối!
-- **Khung mã nguồn "THE ONLY DIFFERENCE"**:
-  - Đối chiếu dòng lệnh `UPDATE accounts` và dòng `balances[msg.sender] -= amount; emit Transfer(...)`.
+  - Bấm `📶 Tắt 2 Node (BFT)` để mô phỏng 2 peer bị rớt mạng: Giao thức Gossip vẫn tự định tuyến qua các node sống sót và đạt đồng thuận (Minh họa Byzantine Fault Tolerance).
+- **Mổ xẻ Mật mã & Mạng máy tính chuyên sâu**:
+  - Bấm `📦 Wireshark Sniffer` (Góc trên): Đối chiếu cấu trúc gói tin TCP Port 5432 (Plaintext SQL) vs DevP2P Frame Port 30303 (Ký số ECDSA secp256k1).
+  - Bấm vào bất kỳ Block nào: Mở **Cryptographic Inspector Modal** để gõ sửa dữ liệu và chứng kiến hiệu ứng thác đổ (Avalanche Effect) của SHA-256 theo thời gian thực.
+  - Bấm `⚡ Bắt Đầu Chạy Đua`: Đo đạc độ trễ giữa SQL (0.8ms) và Blockchain (1,420ms).
 
 ---
 

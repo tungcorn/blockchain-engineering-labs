@@ -478,24 +478,27 @@ canvas {
    ========================================================================== */
 .controls-row {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .btn {
-  flex: 1;
-  padding: 9px 12px;
+  flex: 1 1 calc(33.333% - 8px);
+  min-width: 120px;
+  padding: 8px 10px;
   border-radius: 7px;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
   border: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 5px;
   letter-spacing: 0.02em;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
 }
 
 .btn:active {
@@ -532,6 +535,18 @@ canvas {
   color: #ffffff;
   border-color: var(--red-neon);
   box-shadow: 0 0 14px rgba(239, 68, 68, 0.35);
+}
+
+.btn-ghost-cyan {
+  background: rgba(0, 240, 255, 0.08);
+  color: var(--cyan-bright);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+}
+.btn-ghost-cyan:hover {
+  background: rgba(0, 240, 255, 0.2);
+  color: #ffffff;
+  border-color: var(--cyan-neon);
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.35);
 }
 
 .panel-footer-note {
@@ -994,4 +1009,130 @@ canvas {
   transform: translateY(-2px);
   border-color: #38bdf8;
 }
+
+/* ==========================================================================
+   PACKET INSPECTOR (WIRESHARK MINI) MODAL STYLES
+   ========================================================================== */
+.packet-modal-window {
+  max-width: 860px;
+}
+
+.packet-comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .packet-comparison-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.packet-col {
+  background: #080c14;
+  border: 1px solid #162030;
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.packet-col.packet-sql {
+  border-top: 2px solid var(--cyan-neon);
+}
+
+.packet-col.packet-p2p {
+  border-top: 2px solid var(--amber-neon);
+}
+
+.packet-col-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #162030;
+}
+.packet-col-header.cyan { color: var(--cyan-neon); }
+.packet-col-header.amber { color: var(--amber-neon); }
+
+.protocol-badge {
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #94a3b8;
+}
+
+.packet-meta {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #04070c;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #101724;
+}
+.packet-meta strong {
+  color: #cbd5e1;
+}
+
+.packet-payload-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.payload-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.payload-tag.cyan { color: var(--cyan-bright); }
+.payload-tag.amber { color: var(--amber-bright); }
+
+.payload-code {
+  background: #030509;
+  border: 1px solid #141f2e;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 0.74rem;
+  color: #f1f5f9;
+  overflow-x: auto;
+  line-height: 1.4;
+}
+
+.packet-analysis {
+  font-size: 0.72rem;
+  padding: 10px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.packet-analysis.cyan {
+  background: rgba(0, 240, 255, 0.04);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  color: #a5f3fc;
+}
+
+.packet-analysis.amber {
+  background: rgba(245, 158, 11, 0.04);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+  color: #fde68a;
+}
+
+.packet-analysis ul {
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
 

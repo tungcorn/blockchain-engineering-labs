@@ -15,6 +15,9 @@
        ==================================================================== -->
   <header class="header-hero">
     <div class="top-bar-controls">
+      <button class="btn-icon" onclick="openPacketInspector()">
+        📦 Wireshark Sniffer
+      </button>
       <button class="btn-icon" id="soundToggleBtn" onclick="toggleSound()">
         🔊 SFX: ON
       </button>
@@ -104,6 +107,9 @@
         <button class="btn btn-ghost-danger" onclick="dbaTamperSql()">
           ⚠️ DBA Sửa Trộm
         </button>
+        <button class="btn btn-ghost-danger" id="btnCrashSqlServer" onclick="toggleSqlServerCrash()">
+          🔌 Sập Server (SPOF)
+        </button>
       </div>
 
       <div class="panel-footer-note">
@@ -149,6 +155,9 @@
         </button>
         <button class="btn btn-ghost-danger" id="btnTamperBlockchain" onclick="toggleTamperBlockchain()">
           💥 Tấn Công Sửa Khối
+        </button>
+        <button class="btn btn-ghost-cyan" id="btnPartitionP2P" onclick="toggleP2PPartition()">
+          📶 Tắt 2 Node (BFT)
         </button>
       </div>
 
@@ -322,6 +331,89 @@
         <span class="hash-label">MÃ BĂM SHA-256 ĐƯỢC TÍNH TOÁN THEO THỜI GIAN THỰC:</span>
         <div class="hash-value-live" id="inspectHashVal">calculating...</div>
         <div id="inspectHashStatus" style="font-size: 0.72rem; margin-top: 4px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================================
+     WIRESHARK MINI: MỔ XẺ CẤU TRÚC GÓI TIN MẠNG (TCP VS DEVP2P)
+     ==================================================================== -->
+<div class="modal-backdrop" id="packetInspectorModal" onclick="if(event.target===this) closePacketInspector()">
+  <div class="modal-window packet-modal-window">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span>📦 WIRESHARK MINI:</span>
+        <span style="color: #38bdf8;">SO SÁNH GÓI TIN MẠNG MÁY TÍNH</span>
+      </div>
+      <button class="modal-close-btn" onclick="closePacketInspector()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="packet-comparison-grid">
+
+        <!-- Cột Trái: TCP SQL -->
+        <div class="packet-col packet-sql">
+          <div class="packet-col-header cyan">
+            <span>🌐 TCP PORT 5432 (PostgreSQL / MySQL)</span>
+            <span class="protocol-badge">Client - Server</span>
+          </div>
+          <div class="packet-meta">
+            <div><strong>Frame:</strong> Ethernet II, Src: 00:1a:2b:3c:4d:5e, Dst: 00:0c:29:ab:cd:ef</div>
+            <div><strong>Internet Protocol:</strong> Src: 192.168.1.15, Dst: 192.168.1.10 (DB Server)</div>
+            <div><strong>TCP Header:</strong> Src Port: 52341, Dst Port: 5432 [PSH, ACK]</div>
+          </div>
+          <div class="packet-payload-box">
+            <span class="payload-tag cyan">PAYLOAD DATA (PLAINTEXT QUERY):</span>
+            <pre class="payload-code"><code>UPDATE accounts 
+SET balance = balance - 50 
+WHERE id = 'Alice';
+COMMIT;</code></pre>
+          </div>
+          <div class="packet-analysis cyan">
+            <strong>⚠️ ĐẶC ĐIỂM MẠNG:</strong>
+            <ul>
+              <li>Client gửi văn bản thô (hoặc TLS nếu bật SSL) tới 1 IP duy nhất.</li>
+              <li>Máy chủ nhận được là thực thi ngay; không yêu cầu chữ ký toán học.</li>
+              <li>Nếu máy chủ trung tâm sập mạng ➜ Lỗi <code>ECONNREFUSED</code> lập tức!</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Cột Phải: DevP2P Blockchain -->
+        <div class="packet-col packet-p2p">
+          <div class="packet-col-header amber">
+            <span>⚡ DEVP2P / RLPx PROTOCOL (Port 30303)</span>
+            <span class="protocol-badge">P2P Gossip</span>
+          </div>
+          <div class="packet-meta">
+            <div><strong>Frame:</strong> RLPx Encrypted Frame, DevP2P capability: <code>eth/68</code></div>
+            <div><strong>Peer Node ID:</strong> <code>enode://6f8a80d1...@[10.0.0.12]:30303</code></div>
+            <div><strong>Consensus Message:</strong> <code>NewPooledTransactionHashes (0x08)</code></div>
+          </div>
+          <div class="packet-payload-box">
+            <span class="payload-tag amber">SIGNED TRANSACTION PAYLOAD (JSON-RPC):</span>
+            <pre class="payload-code"><code>{
+  "nonce": "0x1b",
+  "gasPrice": "25000000000 Wei (25 Gwei)",
+  "gasLimit": "21000",
+  "to": "0x94fC147683C90... (Bob)",
+  "value": "20000000000000000000 Wei",
+  "v": "0x1c",
+  "r": "0x789b53f8a4e...",
+  "s": "0x43a129d20c5..."
+}</code></pre>
+          </div>
+          <div class="packet-analysis amber">
+            <strong>🛡️ ĐẶC ĐIỂM MẬT MÃ:</strong>
+            <ul>
+              <li>Được ký bởi Khóa Riêng (Private Key) bằng thuật toán <strong>ECDSA (secp256k1)</strong>.</li>
+              <li>Bất kỳ ai chặn gói tin trên đường truyền cũng không thể sửa <code>value</code> hay <code>to</code>.</li>
+              <li>Gói tin phát sóng đa hướng (Gossip) qua hàng ngàn node P2P. Tắt vài node không ảnh hưởng!</li>
+            </ul>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>

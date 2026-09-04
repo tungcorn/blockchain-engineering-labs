@@ -176,6 +176,9 @@ let sqlRadarAngle = 0;
 const sqlServerNode = { x: 0, y: 0, label: 'CENTRAL DB', type: 'server' };
 const sqlClientNodes = [];
 
+let isSqlServerDown = false;
+let isP2PPartitioned = false;
+
 function initSqlNetwork() {
   if (!sqlCanvas) return;
   const rect = sqlCanvas.parentElement.getBoundingClientRect();
@@ -206,6 +209,12 @@ function initSqlNetwork() {
 }
 
 function triggerSqlPacket(clientIndex = 0) {
+  if (isSqlServerDown) {
+    playSound('alarm');
+    updateSqlHud(`[TCP 192.168.1.10:5432] ECONNREFUSED - Connection dropped (Single Point of Failure)!`, true);
+    return;
+  }
+
   if (!sqlClientNodes[clientIndex]) return;
   const client = sqlClientNodes[clientIndex];
   client.pulse = 1;
@@ -261,24 +270,35 @@ function updateAndDrawSqlNetwork() {
   // 1. Nền lưới cyberpunk
   drawCyberGrid(sqlCtx, w, h, 'cyan');
 
-  // 2. Radar sweep quanh Server trung tâm
-  sqlRadarAngle += 0.03;
-  sqlCtx.save();
-  sqlCtx.beginPath();
-  sqlCtx.arc(sqlServerNode.x, sqlServerNode.y, 45, 0, Math.PI * 2);
-  sqlCtx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
-  sqlCtx.stroke();
-  sqlCtx.beginPath();
-  sqlCtx.moveTo(sqlServerNode.x, sqlServerNode.y);
-  sqlCtx.arc(sqlServerNode.x, sqlServerNode.y, 45, sqlRadarAngle, sqlRadarAngle + 0.5);
-  sqlCtx.closePath();
-  sqlCtx.fillStyle = 'rgba(0, 240, 255, 0.04)';
-  sqlCtx.fill();
-  sqlCtx.restore();
+  // 2. Radar sweep quanh Server trung tâm (hoặc nhấp nháy cảnh báo nếu sập)
+  if (!isSqlServerDown) {
+    sqlRadarAngle += 0.03;
+    sqlCtx.save();
+    sqlCtx.beginPath();
+    sqlCtx.arc(sqlServerNode.x, sqlServerNode.y, 45, 0, Math.PI * 2);
+    sqlCtx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+    sqlCtx.stroke();
+    sqlCtx.beginPath();
+    sqlCtx.moveTo(sqlServerNode.x, sqlServerNode.y);
+    sqlCtx.arc(sqlServerNode.x, sqlServerNode.y, 45, sqlRadarAngle, sqlRadarAngle + 0.5);
+    sqlCtx.closePath();
+    sqlCtx.fillStyle = 'rgba(0, 240, 255, 0.04)';
+    sqlCtx.fill();
+    sqlCtx.restore();
+  } else {
+    // Vòng đỏ cảnh báo sập máy chủ SPOF
+    sqlCtx.save();
+    sqlCtx.beginPath();
+    sqlCtx.arc(sqlServerNode.x, sqlServerNode.y, 35 + Math.sin(Date.now() / 200) * 5, 0, Math.PI * 2);
+    sqlCtx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+    sqlCtx.lineWidth = 2;
+    sqlCtx.stroke();
+    sqlCtx.restore();
+  }
 
   // 3. Đường kết nối hình sao (Star Topology bus lines)
   sqlClientNodes.forEach(node => {
-    sqlCtx.strokeStyle = '#142033';
+    sqlCtx.strokeStyle = isSqlServerDown ? 'rgba(239, 68, 68, 0.2)' : '#142033';
     sqlCtx.lineWidth = 1.5;
     sqlCtx.setLineDash([4, 4]);
     sqlCtx.beginPath();
@@ -355,20 +375,42 @@ function updateAndDrawSqlNetwork() {
   });
 
   // 6. Vẽ Server Node trung tâm
-  sqlCtx.fillStyle = '#0284c7';
-  sqlCtx.shadowColor = '#00f0ff';
-  sqlCtx.shadowBlur = 16;
-  sqlCtx.beginPath();
-  sqlCtx.arc(sqlServerNode.x, sqlServerNode.y, 18, 0, Math.PI * 2);
-  sqlCtx.fill();
-  sqlCtx.shadowBlur = 0;
+  if (!isSqlServerDown) {
+    sqlCtx.fillStyle = '#0284c7';
+    sqlCtx.shadowColor = '#00f0ff';
+    sqlCtx.shadowBlur = 16;
+    sqlCtx.beginPath();
+    sqlCtx.arc(sqlServerNode.x, sqlServerNode.y, 18, 0, Math.PI * 2);
+    sqlCtx.fill();
+    sqlCtx.shadowBlur = 0;
 
-  sqlCtx.fillStyle = '#ffffff';
-  sqlCtx.font = 'bold 9px "JetBrains Mono"';
-  sqlCtx.textAlign = 'center';
-  sqlCtx.fillText('SQL DB', sqlServerNode.x, sqlServerNode.y + 3);
-  sqlCtx.fillStyle = '#00f0ff';
-  sqlCtx.fillText('CENTRAL', sqlServerNode.x, sqlServerNode.y + 30);
+    sqlCtx.fillStyle = '#ffffff';
+    sqlCtx.font = 'bold 9px "JetBrains Mono"';
+    sqlCtx.textAlign = 'center';
+    sqlCtx.fillText('SQL DB', sqlServerNode.x, sqlServerNode.y + 3);
+    sqlCtx.fillStyle = '#00f0ff';
+    sqlCtx.fillText('CENTRAL', sqlServerNode.x, sqlServerNode.y + 30);
+  } else {
+    // Máy chủ sập nguồn (SPOF)
+    sqlCtx.fillStyle = '#7f1d1d';
+    sqlCtx.strokeStyle = '#ef4444';
+    sqlCtx.lineWidth = 2;
+    sqlCtx.shadowColor = '#ef4444';
+    sqlCtx.shadowBlur = 20;
+    sqlCtx.beginPath();
+    sqlCtx.arc(sqlServerNode.x, sqlServerNode.y, 18, 0, Math.PI * 2);
+    sqlCtx.fill();
+    sqlCtx.stroke();
+    sqlCtx.shadowBlur = 0;
+
+    sqlCtx.fillStyle = '#ffffff';
+    sqlCtx.font = 'bold 11px "JetBrains Mono"';
+    sqlCtx.textAlign = 'center';
+    sqlCtx.fillText('✕', sqlServerNode.x, sqlServerNode.y + 4);
+    sqlCtx.fillStyle = '#ef4444';
+    sqlCtx.font = 'bold 8px "JetBrains Mono"';
+    sqlCtx.fillText('SPOF CRASH', sqlServerNode.x, sqlServerNode.y + 30);
+  }
 }
 
 
@@ -464,6 +506,7 @@ function triggerGossipWave(sourceNodeId = 0, onComplete = null) {
     });
 
     neighbors.forEach(neighborId => {
+      if (isP2PPartitioned && (neighborId === 2 || neighborId === 4)) return; // Bỏ qua node bị rớt mạng
       visited.add(neighborId);
       const targetNode = p2pNodes[neighborId];
 
@@ -485,9 +528,50 @@ function triggerGossipWave(sourceNodeId = 0, onComplete = null) {
 
   setTimeout(() => {
     playSound('block_mined');
-    updateBlockchainHud(`[CONSENSUS] 7/7 Nodes verified ECDSA signature · Block mined into ledger.`);
+    if (isP2PPartitioned) {
+      updateBlockchainHud(`[BFT CONSENSUS] 5/5 surviving peers agreed! Byzantine Fault Tolerance: Network survived 2 node failures.`);
+    } else {
+      updateBlockchainHud(`[CONSENSUS] 7/7 Nodes verified ECDSA signature · Block mined into ledger.`);
+    }
     if (onComplete) onComplete();
   }, maxDelay + 250);
+}
+
+function toggleP2PPartition() {
+  isP2PPartitioned = !isP2PPartitioned;
+  const btn = document.getElementById('btnPartitionP2P');
+  if (isP2PPartitioned) {
+    playSound('alarm');
+    if (btn) {
+      btn.innerHTML = "🟢 Bật Lại 7 Node";
+      btn.className = "btn btn-amber";
+    }
+    updateBlockchainHud(`[BFT SIMULATION] Node C & Node E offline! 5/7 peers remain. Testing mesh resilience...`, true);
+    alert(
+      "[MÔ PHỎNG MẠNG P2P: CHỊU LỖI BYZANTINE (BFT)]\n\n" +
+      "Đã ngắt kết nối Node C và Node E (2/7 node bị rớt mạng).\n\n" +
+      "Hãy thử bấm '⚡ Phát Sóng P2P' để xem: Dù 2 node chết, giao thức Gossip vẫn tự động tìm đường vòng qua các node sống sót để đạt đồng thuận sổ cái mà KHÔNG HỀ BỊ SẬP HỆ THỐNG!"
+    );
+  } else {
+    playSound('restore');
+    if (btn) {
+      btn.innerHTML = "📶 Tắt 2 Node (BFT)";
+      btn.className = "btn btn-ghost-cyan";
+    }
+    updateBlockchainHud(`[P2P MESH HEALTH] All 7 peers online and synchronized.`);
+  }
+}
+
+function openPacketInspector() {
+  playSound('modal_open');
+  const modal = document.getElementById('packetInspectorModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closePacketInspector() {
+  playSound('modal_close');
+  const modal = document.getElementById('packetInspectorModal');
+  if (modal) modal.style.display = 'none';
 }
 
 function updateAndDrawP2PNetwork() {
@@ -504,12 +588,20 @@ function updateAndDrawP2PNetwork() {
     const n1 = p2pNodes[u];
     const n2 = p2pNodes[v];
     if (n1 && n2) {
-      p2pCtx.strokeStyle = isChainTampered ? '#451a1a' : '#261b0f';
+      const isEdgeOffline = isP2PPartitioned && (u === 2 || u === 4 || v === 2 || v === 4);
+      if (isEdgeOffline) {
+        p2pCtx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+        p2pCtx.setLineDash([2, 4]);
+      } else {
+        p2pCtx.strokeStyle = isChainTampered ? '#451a1a' : '#261b0f';
+        p2pCtx.setLineDash([]);
+      }
       p2pCtx.lineWidth = 1.5;
       p2pCtx.beginPath();
       p2pCtx.moveTo(n1.x, n1.y);
       p2pCtx.lineTo(n2.x, n2.y);
       p2pCtx.stroke();
+      p2pCtx.setLineDash([]);
     }
   });
 
@@ -535,7 +627,9 @@ function updateAndDrawP2PNetwork() {
 
   // 4. Vòng sóng lan truyền (Gossip wave rings)
   p2pNodes.forEach(node => {
-    if (node.pulseRadius > 0) {
+    const isNodeOffline = isP2PPartitioned && (node.id === 2 || node.id === 4);
+
+    if (node.pulseRadius > 0 && !isNodeOffline) {
       node.pulseRadius += 0.8;
       const alpha = Math.max(0, 1 - node.pulseRadius / 32);
       p2pCtx.strokeStyle = `rgba(245, 158, 11, ${alpha})`;
@@ -549,8 +643,9 @@ function updateAndDrawP2PNetwork() {
     let nodeColor = isChainTampered ? '#ef4444' : '#f59e0b';
     if (node.isAlice) nodeColor = '#38bdf8';
     if (node.isBob) nodeColor = '#34d399';
+    if (isNodeOffline) nodeColor = '#475569';
 
-    p2pCtx.fillStyle = '#14110e';
+    p2pCtx.fillStyle = isNodeOffline ? '#080c14' : '#14110e';
     p2pCtx.strokeStyle = nodeColor;
     p2pCtx.lineWidth = 2;
     p2pCtx.beginPath();
@@ -558,17 +653,17 @@ function updateAndDrawP2PNetwork() {
     p2pCtx.fill();
     p2pCtx.stroke();
 
-    if (node.isAlice || node.isBob) {
+    if (!isNodeOffline && (node.isAlice || node.isBob)) {
       p2pCtx.fillStyle = node.isAlice ? '#38bdf8' : '#34d399';
       p2pCtx.beginPath();
       p2pCtx.arc(node.x, node.y, 4, 0, Math.PI * 2);
       p2pCtx.fill();
     }
 
-    p2pCtx.fillStyle = isChainTampered ? '#fca5a5' : '#cbd5e1';
+    p2pCtx.fillStyle = isNodeOffline ? '#475569' : (isChainTampered ? '#fca5a5' : '#cbd5e1');
     p2pCtx.font = '9px "JetBrains Mono"';
     p2pCtx.textAlign = 'center';
-    p2pCtx.fillText(node.label, node.x, node.y + 20);
+    p2pCtx.fillText(isNodeOffline ? `${node.label} [OFF]` : node.label, node.x, node.y + 20);
   });
 }
 
@@ -612,6 +707,18 @@ function renderSqlTable(highlightKey = null, isTampered = false) {
 
 function executeSqlQuery() {
   playSound('click');
+  if (isSqlServerDown) {
+    playSound('alarm');
+    updateSqlHud(`[TCP ERROR] connect ECONNREFUSED 192.168.1.10:5432 - Single Point of Failure (SPOF)! System HALTED.`, true);
+    alert(
+      "[LỖI KIẾN TRÚC MẠNG: SINGLE POINT OF FAILURE (SPOF)]\n\n" +
+      "Server cơ sở dữ liệu trung tâm đã bị SẬP!\n" +
+      "Mọi truy vấn UPDATE từ Client đều bị từ chối kết nối (ECONNREFUSED).\n" +
+      "=> Đây chính là điểm yếu chí tử của mô hình Client-Server tập trung so với Blockchain."
+    );
+    return;
+  }
+
   if (sqlAccounts.Alice >= 50) {
     sqlAccounts.Alice -= 50;
     sqlAccounts.Bob += 50;
@@ -626,6 +733,11 @@ function executeSqlQuery() {
 }
 
 function dbaTamperSql() {
+  if (isSqlServerDown) {
+    playSound('alarm');
+    alert("Máy chủ đang sập nguồn! DBA cũng không thể kết nối tới SQL database.");
+    return;
+  }
   playSound('alarm');
   sqlAccounts.Alice = 999999;
   renderSqlTable('Alice', true);
@@ -637,6 +749,31 @@ function dbaTamperSql() {
     "UPDATE accounts SET balance = 999999 WHERE id = 'Alice';\n\n" +
     "=> Máy chủ trung tâm lưu dữ liệu ngay lập tức! Không có cảnh báo mật mã nào từ mạng máy tính."
   );
+}
+
+function toggleSqlServerCrash() {
+  isSqlServerDown = !isSqlServerDown;
+  const btn = document.getElementById('btnCrashSqlServer');
+  if (isSqlServerDown) {
+    playSound('alarm');
+    if (btn) {
+      btn.innerHTML = "🟢 Bật Lại Server";
+      btn.className = "btn btn-cyan";
+    }
+    updateSqlHud(`[SPOF DISASTER] Central DB crashed! All TCP sockets closed with ECONNREFUSED.`, true);
+    alert(
+      "[MÔ PHỎNG SỰ CỐ MẠNG: SERVER SẬP (SPOF)]\n\n" +
+      "Bạn vừa ngắt kết nối máy chủ cơ sở dữ liệu trung tâm (Port 5432).\n" +
+      "Hãy thử bấm '▶ Thực Hiện UPDATE' để xem phản ứng của hệ thống!"
+    );
+  } else {
+    playSound('restore');
+    if (btn) {
+      btn.innerHTML = "🔌 Sập Server (SPOF)";
+      btn.className = "btn btn-ghost-danger";
+    }
+    updateSqlHud(`[RECOVERY] Central DB restarted on Port 5432. All client sockets reconnected.`);
+  }
 }
 
 
