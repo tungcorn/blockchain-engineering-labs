@@ -364,9 +364,9 @@ function executeSqlQuery() {
       sqlServer.pulseGlow = 1;
       sqlServer.memoryActivity = 1;
 
-      // In-place mutation
-      sqlAccounts.Alice = 450;
-      sqlAccounts.Bob = 250;
+      // In-place mutation (dynamic balance adjustment)
+      sqlAccounts.Alice = Math.max(0, sqlAccounts.Alice - 50);
+      sqlAccounts.Bob = sqlAccounts.Bob + 50;
       renderSqlTable();
 
       const metric = document.getElementById('sqlMetricCounter');
@@ -992,49 +992,82 @@ function renderSqlMap() {
   // 4. Draw Client Workstations
   sqlClients.forEach(c => {
     sqlCtx.save();
-    const isAliceOrBob = c.id === 'alice' || c.id === 'bob';
+    const isAlice = c.id === 'alice';
+    const isBob = c.id === 'bob';
+    const isEndpoint = isAlice || isBob;
 
     // Draw node circular frame
     sqlCtx.beginPath();
-    sqlCtx.arc(c.x, c.y, isAliceOrBob ? 14 : 10, 0, Math.PI * 2);
+    sqlCtx.arc(c.x, c.y, isEndpoint ? 14 : 10, 0, Math.PI * 2);
 
     if (c.pulse > 0) {
-      sqlCtx.shadowColor = '#00f0ff';
+      sqlCtx.shadowColor = isAlice && isSqlTampered ? '#ef4444' : '#00f0ff';
       sqlCtx.shadowBlur = 20;
       c.pulse = Math.max(0, c.pulse - 0.03);
     }
 
-    sqlCtx.fillStyle = c.id === 'dba' ? '#1f1305' : '#081726';
+    sqlCtx.fillStyle = c.id === 'dba' ? '#1f1305' : (isAlice && isSqlTampered ? '#2a0e0e' : '#081726');
     sqlCtx.fill();
-    sqlCtx.strokeStyle = c.id === 'dba' ? '#f59e0b' : (c.id === 'alice' && isSqlTampered ? '#ef4444' : '#00f0ff');
-    sqlCtx.lineWidth = isAliceOrBob ? 2 : 1;
+    sqlCtx.strokeStyle = c.id === 'dba' ? '#f59e0b' : (isAlice && isSqlTampered ? '#ef4444' : (isBob ? '#10b981' : '#00f0ff'));
+    sqlCtx.lineWidth = isEndpoint ? 2 : 1;
     sqlCtx.stroke();
 
-    // Node Name & IP Label
-    sqlCtx.fillStyle = '#94a3b8';
-    sqlCtx.font = '7.5px monospace';
-    sqlCtx.textAlign = 'center';
-
-    if (c.id === 'alice' && isSqlTampered) {
-      sqlCtx.fillStyle = '#ef4444';
-      sqlCtx.font = 'bold 8px monospace';
-      sqlCtx.fillText('⚠️ SILENT OVERWRITE: 999,999 ETH', c.x, c.y - 18);
+    // Inner letter icon for endpoints
+    if (isAlice) {
+      sqlCtx.fillStyle = isSqlTampered ? '#ef4444' : '#38bdf8';
+      sqlCtx.font = 'bold 11px monospace';
+      sqlCtx.textAlign = 'center';
+      sqlCtx.textBaseline = 'middle';
+      sqlCtx.fillText('A', c.x, c.y);
+    } else if (isBob) {
+      sqlCtx.fillStyle = '#34d399';
+      sqlCtx.font = 'bold 11px monospace';
+      sqlCtx.textAlign = 'center';
+      sqlCtx.textBaseline = 'middle';
+      sqlCtx.fillText('B', c.x, c.y);
     }
 
-    if (c.id === 'gateway') {
+    // Node Name & IP Label
+    sqlCtx.textBaseline = 'alphabetic';
+    sqlCtx.textAlign = 'center';
+
+    if (isAlice) {
+      sqlCtx.fillStyle = isSqlTampered ? '#fca5a5' : '#e0f2fe';
+      sqlCtx.font = 'bold 8.5px monospace';
+      sqlCtx.fillText('Client Alice • 192.168.1.15', c.x, c.y - 20);
+
+      if (isSqlTampered) {
+        sqlCtx.fillStyle = '#ef4444';
+        sqlCtx.font = 'bold 8px monospace';
+        sqlCtx.fillText('⚠️ DB RECORD FORGED (999,999 ETH)', c.x, c.y + 24);
+      }
+    } else if (isBob) {
+      sqlCtx.fillStyle = '#a7f3d0';
+      sqlCtx.font = 'bold 8.5px monospace';
+      sqlCtx.fillText('Client Bob • 192.168.1.20', c.x, c.y + 24);
+    } else if (c.id === 'gateway') {
+      sqlCtx.fillStyle = '#94a3b8';
+      sqlCtx.font = '7.5px monospace';
       sqlCtx.fillText('API Gateway', c.x, c.y + 18);
       sqlCtx.fillText('192.168.1.12', c.x, c.y + 26);
     } else if (c.id === 'mobile') {
+      sqlCtx.fillStyle = '#94a3b8';
+      sqlCtx.font = '7.5px monospace';
       sqlCtx.fillText('Mobile App', c.x, c.y + 18);
       sqlCtx.fillText('192.168.1.33', c.x, c.y + 26);
     } else if (c.id === 'worker') {
+      sqlCtx.fillStyle = '#94a3b8';
+      sqlCtx.font = '7.5px monospace';
       sqlCtx.fillText('Worker Service', c.x, c.y + 18);
       sqlCtx.fillText('192.168.1.45', c.x, c.y + 26);
     } else if (c.id === 'analytics') {
+      sqlCtx.fillStyle = '#94a3b8';
+      sqlCtx.font = '7.5px monospace';
       sqlCtx.fillText('Analytics DB', c.x, c.y + 18);
       sqlCtx.fillText('192.168.1.72', c.x, c.y + 26);
     } else if (c.id === 'dba') {
       sqlCtx.fillStyle = '#f59e0b';
+      sqlCtx.font = '7.5px monospace';
       sqlCtx.fillText('DBA Root Terminal', c.x, c.y + 18);
       sqlCtx.fillText('192.168.1.99', c.x, c.y + 26);
     }
@@ -1292,19 +1325,44 @@ function renderP2PMap() {
       p2pCtx.textAlign = 'center';
 
       if (isEndpoint) {
-        p2pCtx.fillText(n.peerId, n.x, n.y + 3);
-        if (isChainTampered && n.id === 'alice') {
-          p2pCtx.fillStyle = '#ef4444';
-          p2pCtx.font = 'bold 8px monospace';
-          p2pCtx.fillText('⚠️ TAMPERED NODE (QUARANTINED)', n.x, n.y - 18);
-        } else if (isChainTampered && n.id === 'bob') {
-          p2pCtx.fillStyle = '#34d399';
-          p2pCtx.font = 'bold 8px monospace';
-          p2pCtx.fillText('✓ CANONICAL LEDGER RETAINED', n.x, n.y + 25);
+        // Crisp letter icon inside circle
+        p2pCtx.fillStyle = isChainTampered && n.id === 'alice' ? '#ffffff' : (n.id === 'alice' ? '#f59e0b' : '#34d399');
+        p2pCtx.font = 'bold 11px monospace';
+        p2pCtx.textAlign = 'center';
+        p2pCtx.textBaseline = 'middle';
+        p2pCtx.fillText(n.id === 'alice' ? 'A' : 'B', n.x, n.y);
+
+        p2pCtx.textBaseline = 'alphabetic';
+        if (n.id === 'alice') {
+          p2pCtx.fillStyle = isChainTampered ? '#fca5a5' : '#fde68a';
+          p2pCtx.font = 'bold 8.5px monospace';
+          p2pCtx.fillText('Node Alice • Peer 0x71c', n.x, n.y - 20);
+
+          if (isChainTampered) {
+            p2pCtx.fillStyle = '#ef4444';
+            p2pCtx.font = 'bold 8px monospace';
+            p2pCtx.fillText('⚠️ TAMPERED NODE (QUARANTINED)', n.x, n.y + 24);
+          }
+        } else if (n.id === 'bob') {
+          p2pCtx.fillStyle = '#a7f3d0';
+          p2pCtx.font = 'bold 8.5px monospace';
+          p2pCtx.fillText('Node Bob • Peer 0x94f', n.x, n.y + 24);
+
+          if (isChainTampered) {
+            p2pCtx.fillStyle = '#34d399';
+            p2pCtx.font = 'bold 8px monospace';
+            p2pCtx.fillText('✓ CANONICAL LEDGER RETAINED', n.x, n.y + 34);
+          }
         }
       } else if (isVal) {
+        p2pCtx.fillStyle = '#fcd34d';
+        p2pCtx.font = '7.5px monospace';
+        p2pCtx.textAlign = 'center';
         p2pCtx.fillText(n.peerId, n.x, n.y - 12);
       } else {
+        p2pCtx.fillStyle = '#94a3b8';
+        p2pCtx.font = '7.5px monospace';
+        p2pCtx.textAlign = 'center';
         p2pCtx.fillText(n.peerId, n.x, n.y + 13);
       }
     }
